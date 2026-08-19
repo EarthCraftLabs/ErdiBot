@@ -1,0 +1,48 @@
+{
+  "name": "ascensionts",
+  "version": "1.0.0",
+  "description": "EarthCraft Discord Bot for Managing the Community Server",
+  "keywords": [
+    "EarthCraft",
+    "TypeScript",
+    "Discord.JS",
+    "MecryTv",
+    "Discord",
+    "Bot"
+  ],
+  "homepage": "https://github.com/EarthCraftLabs/ErdiBot#readme",
+  "bugs": {
+    "url": "https://github.com/EarthCraftLabs/ErdiBot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EarthCraftLabs/ErdiBot.git"
+  },
+  "license": "MIT",
+  "author": "MecryTv",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts --dev",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx src/tests/Gallery.test.ts && tsx src/tests/GalleryPanel.test.ts && tsx src/tests/Server.test.ts && tsx src/tests/DatabaseConnection.test.ts && tsx src/tests/SchemaSync.test.ts && tsx src/tests/Auth.test.ts",
+    "start": "node .",
+    "token": "tsx src/scripts/GenerateToken.ts"
+  },
+  "dependencies": {
+    "@fastify/rate-limit": "^11.2.0",
+    "@napi-rs/canvas": "^1.0.6",
+    "axios": "^1.19.0",
+    "discord-transcripts-v2": "npm:discord-transcript-v2@^1.0.16",
+    "discord.js": "^14.27.0",
+    "fastify": "^5.12.0",
+    "glob": "^13.0.6",
+    "lru-cache": "^11.5.2",
+    "mysql2": "^3.23.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12"
+  }
+}
