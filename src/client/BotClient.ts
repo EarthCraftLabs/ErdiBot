@@ -8,6 +8,7 @@ import DatabaseConnection from "../database/DatabaseConnection";
 import Guardian from "../Guardian";
 import RunnableService from "../services/RunnableService";
 import GalleryService from "../services/GalleryService";
+import ConfigService from "../services/ConfigService";
 import Server from "../Server";
 
 export default class BotClient extends Client implements IBotClient {
@@ -21,6 +22,7 @@ export default class BotClient extends Client implements IBotClient {
     database: DatabaseConnection;
     runnableService: RunnableService;
     galleryService: GalleryService;
+    configService: ConfigService;
     server: Server;
 
     constructor() {
@@ -52,6 +54,7 @@ export default class BotClient extends Client implements IBotClient {
         this.database = new DatabaseConnection(this);
         this.runnableService = new RunnableService(this);
         this.galleryService = new GalleryService(this);
+        this.configService = new ConfigService(this);
         this.server = new Server(this);
     }
 
@@ -64,6 +67,7 @@ export default class BotClient extends Client implements IBotClient {
         logger.beforeExit(async (signal) => {
             logger.info(`🛑 Shutting down (${signal})...`);
             this.runnableService.Stop();
+            this.configService.Unwatch();
             await this.server.Stop();
             await this.database.Disconnect();
             await this.destroy();
@@ -77,6 +81,13 @@ export default class BotClient extends Client implements IBotClient {
                 await this.galleryService.Initialize();
             })
             .catch((err) => logger.error("🗄️  MariaDB connection failed", err));
+
+        this.configService
+            .Initialize()
+            .then(() => {
+                if (this.developerMode) this.configService.Watch();
+            })
+            .catch((err) => logger.error("⚙️  Konfigurationen konnten nicht geladen werden", err));
 
         this.server.Start().catch((err) => logger.error("🌐 Server konnte nicht starten", err));
 
