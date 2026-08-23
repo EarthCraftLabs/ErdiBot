@@ -1,4 +1,4 @@
-import { ColorResolvable, ComponentEmojiResolvable } from "discord.js";
+import { ChannelType, ColorResolvable, ComponentEmojiResolvable } from "discord.js";
 
 export type ButtonTone = "primary" | "secondary" | "success" | "danger";
 export type SpacingSize = "small" | "large";
@@ -48,6 +48,14 @@ export interface ISelectMenuOptions {
     placeholder?: string;
     minValues?: number;
     maxValues?: number;
+    disabled?: boolean;
+}
+
+export interface IChannelSelectOptions {
+    customId: string;
+    channelTypes?: ChannelType[];
+    placeholder?: string;
+    defaultChannel?: string | null;
     disabled?: boolean;
 }
 

@@ -1,0 +1,515 @@
+[
+    {
+        "pagination": true,
+        "fonts": [
+            {
+                "name": "Inter",
+                "description": "Sans · Inter",
+                "value": "Inter",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Roboto",
+                "description": "Sans · Roboto",
+                "value": "Roboto",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Open Sans",
+                "description": "Sans · Open Sans",
+                "value": "Open Sans",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Montserrat",
+                "description": "Sans · Montserrat",
+                "value": "Montserrat",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Poppins",
+                "description": "Sans · Poppins",
+                "value": "Poppins",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Nunito",
+                "description": "Sans · Nunito",
+                "value": "Nunito",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Raleway",
+                "description": "Sans · Raleway",
+                "value": "Raleway",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Rubik",
+                "description": "Sans · Rubik",
+                "value": "Rubik",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Quicksand",
+                "description": "Sans · Quicksand",
+                "value": "Quicksand",
+                "emoji": "🔤"
+            },
+            {
+                "name": "Playfair Display",
+                "description": "Serif · Playfair Display",
+                "value": "Playfair Display",
+                "emoji": "📜"
+            },
+            {
+                "name": "Merriweather",
+                "description": "Serif · Merriweather",
+                "value": "Merriweather",
+                "emoji": "📜"
+            },
+            {
+                "name": "Lora",
+                "description": "Serif · Lora",
+                "value": "Lora",
+                "emoji": "📜"
+            },
+            {
+                "name": "Cinzel",
+                "description": "Serif · Cinzel",
+                "value": "Cinzel",
+                "emoji": "📜"
+            },
+            {
+                "name": "Bebas Neue",
+                "description": "Display · Bebas Neue",
+                "value": "Bebas Neue",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Anton",
+                "description": "Display · Anton",
+                "value": "Anton",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Oswald",
+                "description": "Display · Oswald",
+                "value": "Oswald",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Righteous",
+                "description": "Display · Righteous",
+                "value": "Righteous",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Bungee",
+                "description": "Display · Bungee",
+                "value": "Bungee",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Titan One",
+                "description": "Display · Titan One",
+                "value": "Titan One",
+                "emoji": "🅰️"
+            },
+            {
+                "name": "Pacifico",
+                "description": "Handschrift · Pacifico",
+                "value": "Pacifico",
+                "emoji": "✍️"
+            },
+            {
+                "name": "Lobster",
+                "description": "Handschrift · Lobster",
+                "value": "Lobster",
+                "emoji": "✍️"
+            },
+            {
+                "name": "Dancing Script",
+                "description": "Handschrift · Dancing Script",
+                "value": "Dancing Script",
+                "emoji": "✍️"
+            },
+            {
+                "name": "Caveat",
+                "description": "Handschrift · Caveat",
+                "value": "Caveat",
+                "emoji": "✍️"
+            },
+            {
+                "name": "JetBrains Mono",
+                "description": "Mono · JetBrains Mono",
+                "value": "JetBrains Mono",
+                "emoji": "⌨️"
+            },
+            {
+                "name": "Orbitron",
+                "description": "Gaming · Orbitron",
+                "value": "Orbitron",
+                "emoji": "🎮"
+            }
+        ],
+        "modes": [
+            {
+                "name": "Nur Bild",
+                "description": "Es wird ausschliesslich die gerenderte Karte gepostet",
+                "value": "image",
+                "emoji": "🖼️"
+            },
+            {
+                "name": "Bild + Container",
+                "description": "Karte plus eine ComponentV2-Nachricht darunter",
+                "value": "image_container",
+                "emoji": "🧩"
+            },
+            {
+                "name": "Nur Container",
+                "description": "Kein Canvas - nur die ComponentV2-Nachricht",
+                "value": "container",
+                "emoji": "💬"
+            }
+        ],
+        "layers": [
+            {
+                "name": "Text",
+                "description": "Beschriftung mit Schriftart, Farbe und Effekt",
+                "value": "text",
+                "emoji": "🔠"
+            },
+            {
+                "name": "Avatar",
+                "description": "Das Profilbild des neuen Mitglieds",
+                "value": "avatar",
+                "emoji": "👤"
+            },
+            {
+                "name": "Bild",
+                "description": "Ein Bild aus der Galerie",
+                "value": "image",
+                "emoji": "🖼️"
+            },
+            {
+                "name": "Form",
+                "description": "Rechteck, Kreis oder Linie als Akzent",
+                "value": "shape",
+                "emoji": "⬛"
+            }
+        ],
+        "anchors": [
+            {
+                "name": "Oben links",
+                "description": "Ankerpunkt oben links",
+                "value": "top-left",
+                "emoji": "↖️"
+            },
+            {
+                "name": "Oben mittig",
+                "description": "Ankerpunkt oben mittig",
+                "value": "top-center",
+                "emoji": "⬆️"
+            },
+            {
+                "name": "Oben rechts",
+                "description": "Ankerpunkt oben rechts",
+                "value": "top-right",
+                "emoji": "↗️"
+            },
+            {
+                "name": "Mitte links",
+                "description": "Ankerpunkt mittig links",
+                "value": "middle-left",
+                "emoji": "⬅️"
+            },
+            {
+                "name": "Mitte",
+                "description": "Ankerpunkt in der Bildmitte",
+                "value": "middle-center",
+                "emoji": "⏺️"
+            },
+            {
+                "name": "Mitte rechts",
+                "description": "Ankerpunkt mittig rechts",
+                "value": "middle-right",
+                "emoji": "➡️"
+            },
+            {
+                "name": "Unten links",
+                "description": "Ankerpunkt unten links",
+                "value": "bottom-left",
+                "emoji": "↙️"
+            },
+            {
+                "name": "Unten mittig",
+                "description": "Ankerpunkt unten mittig",
+                "value": "bottom-center",
+                "emoji": "⬇️"
+            },
+            {
+                "name": "Unten rechts",
+                "description": "Ankerpunkt unten rechts",
+                "value": "bottom-right",
+                "emoji": "↘️"
+            }
+        ],
+        "aligns": [
+            {
+                "name": "Linksbündig",
+                "description": "Text wächst nach rechts",
+                "value": "left",
+                "emoji": "⬅️"
+            },
+            {
+                "name": "Zentriert",
+                "description": "Text wächst nach beiden Seiten",
+                "value": "center",
+                "emoji": "↔️"
+            },
+            {
+                "name": "Rechtsbündig",
+                "description": "Text wächst nach links",
+                "value": "right",
+                "emoji": "➡️"
+            }
+        ],
+        "effects": [
+            {
+                "name": "Ohne",
+                "description": "Reiner Text ohne Effekt",
+                "value": "none",
+                "emoji": "⚪"
+            },
+            {
+                "name": "Schatten",
+                "description": "Weicher Schlagschatten hinter dem Text",
+                "value": "shadow",
+                "emoji": "🌑"
+            },
+            {
+                "name": "Outline",
+                "description": "Konturlinie um jeden Buchstaben",
+                "value": "outline",
+                "emoji": "⭕"
+            },
+            {
+                "name": "Beides",
+                "description": "Schatten und Kontur zusammen",
+                "value": "both",
+                "emoji": "✨"
+            }
+        ],
+        "avatars": [
+            {
+                "name": "Kreis",
+                "description": "Rund zugeschnitten",
+                "value": "circle",
+                "emoji": "⭕"
+            },
+            {
+                "name": "Abgerundet",
+                "description": "Quadrat mit runden Ecken",
+                "value": "rounded",
+                "emoji": "🔲"
+            },
+            {
+                "name": "Quadrat",
+                "description": "Ohne Maske",
+                "value": "square",
+                "emoji": "⬜"
+            }
+        ],
+        "shapes": [
+            {
+                "name": "Rechteck",
+                "description": "Gefüllte Fläche, optional mit runden Ecken",
+                "value": "rect",
+                "emoji": "⬛"
+            },
+            {
+                "name": "Kreis",
+                "description": "Gefüllter Kreis",
+                "value": "circle",
+                "emoji": "⚫"
+            },
+            {
+                "name": "Linie",
+                "description": "Dünner Balken als Trenner",
+                "value": "line",
+                "emoji": "➖"
+            }
+        ],
+        "fits": [
+            {
+                "name": "Füllend",
+                "description": "Bild füllt die Karte, Überstand wird beschnitten",
+                "value": "cover",
+                "emoji": "🔳"
+            },
+            {
+                "name": "Einpassen",
+                "description": "Ganzes Bild sichtbar, Ränder bleiben frei",
+                "value": "contain",
+                "emoji": "🖼️"
+            },
+            {
+                "name": "Verzerren",
+                "description": "Bild wird auf die Kartengrösse gezogen",
+                "value": "stretch",
+                "emoji": "↔️"
+            }
+        ],
+        "presets": [
+            {
+                "name": "Banner 1024×400",
+                "description": "Klassische Welcome-Karte",
+                "value": "1024x400",
+                "emoji": "🖼️"
+            },
+            {
+                "name": "Breit 1200×480",
+                "description": "Mehr Platz für lange Namen",
+                "value": "1200x480",
+                "emoji": "🏞️"
+            },
+            {
+                "name": "Quadrat 800×800",
+                "description": "Für Avatar-lastige Karten",
+                "value": "800x800",
+                "emoji": "🟦"
+            },
+            {
+                "name": "Kompakt 720×300",
+                "description": "Klein und schnell",
+                "value": "720x300",
+                "emoji": "▪️"
+            }
+        ],
+        "colors": [
+            {
+                "name": "Weiss",
+                "description": "#FFFFFF",
+                "value": "#FFFFFF",
+                "emoji": "⚪"
+            },
+            {
+                "name": "Schwarz",
+                "description": "#000000",
+                "value": "#000000",
+                "emoji": "⚫"
+            },
+            {
+                "name": "Discord Blurple",
+                "description": "#5865F2",
+                "value": "#5865F2",
+                "emoji": "🔵"
+            },
+            {
+                "name": "Rot",
+                "description": "#ED4245",
+                "value": "#ED4245",
+                "emoji": "🔴"
+            },
+            {
+                "name": "Grün",
+                "description": "#57F287",
+                "value": "#57F287",
+                "emoji": "🟢"
+            },
+            {
+                "name": "Gelb",
+                "description": "#FEE75C",
+                "value": "#FEE75C",
+                "emoji": "🟡"
+            },
+            {
+                "name": "Pink",
+                "description": "#EB459E",
+                "value": "#EB459E",
+                "emoji": "🩷"
+            },
+            {
+                "name": "Orange",
+                "description": "#F0842A",
+                "value": "#F0842A",
+                "emoji": "🟠"
+            },
+            {
+                "name": "Violett",
+                "description": "#B57BFF",
+                "value": "#B57BFF",
+                "emoji": "🟣"
+            },
+            {
+                "name": "Türkis",
+                "description": "#1ABC9C",
+                "value": "#1ABC9C",
+                "emoji": "🩵"
+            },
+            {
+                "name": "Anthrazit",
+                "description": "#2B2D31",
+                "value": "#2B2D31",
+                "emoji": "🖤"
+            },
+            {
+                "name": "Gold",
+                "description": "#E5C07B",
+                "value": "#E5C07B",
+                "emoji": "🏅"
+            }
+        ],
+        "placeholders": [
+            {
+                "name": "{user}",
+                "description": "Erwähnung des Mitglieds",
+                "value": "{user}",
+                "emoji": "📣"
+            },
+            {
+                "name": "{username}",
+                "description": "Discord-Benutzername",
+                "value": "{username}",
+                "emoji": "🔤"
+            },
+            {
+                "name": "{displayname}",
+                "description": "Anzeigename im Server",
+                "value": "{displayname}",
+                "emoji": "🏷️"
+            },
+            {
+                "name": "{tag}",
+                "description": "Benutzername mit Discriminator",
+                "value": "{tag}",
+                "emoji": "#️⃣"
+            },
+            {
+                "name": "{server}",
+                "description": "Name des Servers",
+                "value": "{server}",
+                "emoji": "🏠"
+            },
+            {
+                "name": "{membercount}",
+                "description": "Mitgliederzahl nach dem Beitritt",
+                "value": "{membercount}",
+                "emoji": "🔢"
+            },
+            {
+                "name": "{ordinal}",
+                "description": "Mitgliederzahl als 42. Mitglied",
+                "value": "{ordinal}",
+                "emoji": "🥇"
+            },
+            {
+                "name": "{date}",
+                "description": "Beitrittsdatum, kurz",
+                "value": "{date}",
+                "emoji": "📅"
+            }
+        ]
+    }
+]

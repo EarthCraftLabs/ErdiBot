@@ -2,6 +2,7 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    ChannelSelectMenuBuilder,
     ColorResolvable,
     ContainerBuilder,
     FileBuilder,
@@ -22,6 +23,7 @@ import {
     IComponentV2BuilderOptions,
     IListOptions,
     IProgressOptions,
+    IChannelSelectOptions,
     ISelectMenuOptions,
     ISeparatorOptions,
     SectionAccessory,
@@ -193,6 +195,23 @@ export default class ComponentV2Builder {
         if (options.placeholder) menu.setPlaceholder(options.placeholder);
         if (options.minValues !== undefined) menu.setMinValues(options.minValues);
         if (options.maxValues !== undefined) menu.setMaxValues(options.maxValues);
+        if (options.disabled) menu.setDisabled(true);
+
+        this.container.addActionRowComponents(
+            new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)
+        );
+
+        return this;
+    }
+
+    public channelSelect(options: IChannelSelectOptions): this {
+        this.spend(2);
+
+        const menu = new ChannelSelectMenuBuilder().setCustomId(options.customId);
+
+        if (options.channelTypes?.length) menu.addChannelTypes(...options.channelTypes);
+        if (options.placeholder) menu.setPlaceholder(options.placeholder);
+        if (options.defaultChannel) menu.setDefaultChannels(options.defaultChannel);
         if (options.disabled) menu.setDisabled(true);
 
         this.container.addActionRowComponents(

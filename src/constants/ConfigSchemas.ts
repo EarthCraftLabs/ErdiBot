@@ -13,7 +13,24 @@ export const OPTION: IFieldSchema = {
 
 export const OPTIONS: IFieldSchema = { type: "array", of: OPTION };
 
-export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {};
+const WELCOME_FIELDS = [
+    "fonts",
+    "modes",
+    "layers",
+    "anchors",
+    "aligns",
+    "effects",
+    "avatars",
+    "shapes",
+    "fits",
+    "presets",
+    "colors",
+    "placeholders",
+] as const;
+
+export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
+    welcome: Object.fromEntries(WELCOME_FIELDS.map((field) => [field, OPTIONS])),
+};
 
 export function ValidateField(value: unknown, schema: IFieldSchema, path: string, errors: string[]): void {
     if (value === undefined || value === null) {

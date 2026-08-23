@@ -1,0 +1,202 @@
+[
+    {
+        "family": "Inter",
+        "slug": "inter",
+        "category": "Sans",
+        "regular": "inter-regular.ttf",
+        "license": "licenses/inter.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/inter"
+    },
+    {
+        "family": "Roboto",
+        "slug": "roboto",
+        "category": "Sans",
+        "regular": "roboto-regular.ttf",
+        "license": "licenses/roboto.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/roboto"
+    },
+    {
+        "family": "Open Sans",
+        "slug": "opensans",
+        "category": "Sans",
+        "regular": "opensans-regular.ttf",
+        "license": "licenses/opensans.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/opensans"
+    },
+    {
+        "family": "Montserrat",
+        "slug": "montserrat",
+        "category": "Sans",
+        "regular": "montserrat-regular.ttf",
+        "license": "licenses/montserrat.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/montserrat"
+    },
+    {
+        "family": "Poppins",
+        "slug": "poppins",
+        "category": "Sans",
+        "regular": "poppins-regular.ttf",
+        "license": "licenses/poppins.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/poppins"
+    },
+    {
+        "family": "Nunito",
+        "slug": "nunito",
+        "category": "Sans",
+        "regular": "nunito-regular.ttf",
+        "license": "licenses/nunito.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/nunito"
+    },
+    {
+        "family": "Raleway",
+        "slug": "raleway",
+        "category": "Sans",
+        "regular": "raleway-regular.ttf",
+        "license": "licenses/raleway.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/raleway"
+    },
+    {
+        "family": "Rubik",
+        "slug": "rubik",
+        "category": "Sans",
+        "regular": "rubik-regular.ttf",
+        "license": "licenses/rubik.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/rubik"
+    },
+    {
+        "family": "Quicksand",
+        "slug": "quicksand",
+        "category": "Sans",
+        "regular": "quicksand-regular.ttf",
+        "license": "licenses/quicksand.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/quicksand"
+    },
+    {
+        "family": "Playfair Display",
+        "slug": "playfairdisplay",
+        "category": "Serif",
+        "regular": "playfairdisplay-regular.ttf",
+        "license": "licenses/playfairdisplay.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/playfairdisplay"
+    },
+    {
+        "family": "Merriweather",
+        "slug": "merriweather",
+        "category": "Serif",
+        "regular": "merriweather-regular.ttf",
+        "license": "licenses/merriweather.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/merriweather"
+    },
+    {
+        "family": "Lora",
+        "slug": "lora",
+        "category": "Serif",
+        "regular": "lora-regular.ttf",
+        "license": "licenses/lora.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/lora"
+    },
+    {
+        "family": "Cinzel",
+        "slug": "cinzel",
+        "category": "Serif",
+        "regular": "cinzel-regular.ttf",
+        "license": "licenses/cinzel.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/cinzel"
+    },
+    {
+        "family": "Bebas Neue",
+        "slug": "bebasneue",
+        "category": "Display",
+        "regular": "bebasneue-regular.ttf",
+        "license": "licenses/bebasneue.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/bebasneue"
+    },
+    {
+        "family": "Anton",
+        "slug": "anton",
+        "category": "Display",
+        "regular": "anton-regular.ttf",
+        "license": "licenses/anton.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/anton"
+    },
+    {
+        "family": "Oswald",
+        "slug": "oswald",
+        "category": "Display",
+        "regular": "oswald-regular.ttf",
+        "license": "licenses/oswald.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/oswald"
+    },
+    {
+        "family": "Righteous",
+        "slug": "righteous",
+        "category": "Display",
+        "regular": "righteous-regular.ttf",
+        "license": "licenses/righteous.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/righteous"
+    },
+    {
+        "family": "Bungee",
+        "slug": "bungee",
+        "category": "Display",
+        "regular": "bungee-regular.ttf",
+        "license": "licenses/bungee.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/bungee"
+    },
+    {
+        "family": "Titan One",
+        "slug": "titanone",
+        "category": "Display",
+        "regular": "titanone-regular.ttf",
+        "license": "licenses/titanone.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/titanone"
+    },
+    {
+        "family": "Pacifico",
+        "slug": "pacifico",
+        "category": "Handschrift",
+        "regular": "pacifico-regular.ttf",
+        "license": "licenses/pacifico.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/pacifico"
+    },
+    {
+        "family": "Lobster",
+        "slug": "lobster",
+        "category": "Handschrift",
+        "regular": "lobster-regular.ttf",
+        "license": "licenses/lobster.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/lobster"
+    },
+    {
+        "family": "Dancing Script",
+        "slug": "dancingscript",
+        "category": "Handschrift",
+        "regular": "dancingscript-regular.ttf",
+        "license": "licenses/dancingscript.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/dancingscript"
+    },
+    {
+        "family": "Caveat",
+        "slug": "caveat",
+        "category": "Handschrift",
+        "regular": "caveat-regular.ttf",
+        "license": "licenses/caveat.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/caveat"
+    },
+    {
+        "family": "JetBrains Mono",
+        "slug": "jetbrainsmono",
+        "category": "Mono",
+        "regular": "jetbrainsmono-regular.ttf",
+        "license": "licenses/jetbrainsmono.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/jetbrainsmono"
+    },
+    {
+        "family": "Orbitron",
+        "slug": "orbitron",
+        "category": "Gaming",
+        "regular": "orbitron-regular.ttf",
+        "license": "licenses/orbitron.txt",
+        "source": "https://github.com/google/fonts/tree/main/ofl/orbitron"
+    }
+]
