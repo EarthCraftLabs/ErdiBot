@@ -17,7 +17,7 @@ export default class Ready extends Event {
 
         let status = [
             {
-                name: 'Ascension | /help',
+                name: 'EarthCraft | /help',
                 type: ActivityType.Listening,
             },
             {
