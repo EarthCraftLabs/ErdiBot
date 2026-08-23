@@ -9,6 +9,7 @@ export default interface IRouteOptions {
     method: HTTPMethods;
     path: string;
     description: string;
+    prefixed?: boolean;
     requiresAuth?: boolean;
     rateLimit?: IRateLimit;
 }

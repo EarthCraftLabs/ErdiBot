@@ -261,7 +261,7 @@ await interaction.update({ ...view, flags: MessageFlags.IsComponentsV2, attachme
 
 | Route | Antwort |
 |---|---|
-| `GET /health` | `{ status: "ok", uptime }` |
+| `GET /dcapi/health` | `{ status: "ok", uptime }` |
 | `GET /images/*` | Die Datei, oder 403 / 404 |
 
 Lauscht auf `0.0.0.0:SERVER_PORT`. `/images/*` ist bewusst ohne Token erreichbar, alle anderen Routen verlangen einen - Details in [Server.md](Server.md). Die Basis-URL kommt aus `Server.BaseURL`:

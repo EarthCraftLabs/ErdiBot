@@ -9,6 +9,7 @@ import Guardian from "../Guardian";
 import RunnableService from "../services/RunnableService";
 import GalleryService from "../services/GalleryService";
 import ConfigService from "../services/ConfigService";
+import DiscordService from "../services/DiscordService";
 import Server from "../Server";
 
 export default class BotClient extends Client implements IBotClient {
@@ -23,6 +24,7 @@ export default class BotClient extends Client implements IBotClient {
     runnableService: RunnableService;
     galleryService: GalleryService;
     configService: ConfigService;
+    discordService: DiscordService;
     server: Server;
 
     constructor() {
@@ -55,6 +57,7 @@ export default class BotClient extends Client implements IBotClient {
         this.runnableService = new RunnableService(this);
         this.galleryService = new GalleryService(this);
         this.configService = new ConfigService(this);
+        this.discordService = new DiscordService(this);
         this.server = new Server(this);
     }
 

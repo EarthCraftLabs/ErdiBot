@@ -2,6 +2,8 @@
 
 Fastify-Server neben `index.ts` und `Guardian.ts`. Routen liegen in `src/routes` und werden vom `RouteManager` geladen, abgesichert und an Fastify gehängt.
 
+Alles liegt unter dem Präfix **`/dcapi`** — die Schnittstelle, über die ein Minecraft-Plugin oder ein Webpanel mit dem Bot spricht. Einzige Ausnahme ist `/images/*`, das Discord selbst abruft.
+
 Zugriff über den Client: `this.client.server`.
 
 ---
@@ -55,14 +57,53 @@ export default class Stats extends Route {
 | Option | Standard | Bedeutung |
 |---|---|---|
 | `method` | — | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, … |
-| `path` | — | Fastify-Pfad, Wildcards mit `*` |
+| `path` | — | Fastify-Pfad, Wildcards mit `*`, Parameter mit `:name` |
 | `description` | — | Wofür die Route da ist |
+| `prefixed` | `true` | `false` hängt die Route ohne `/dcapi` ein |
 | `requiresAuth` | `true` | `false` macht die Route ohne Token erreichbar |
 | `rateLimit` | globales Limit | `{ max, timeWindow }` überschreibt es für diese Route |
+
+`path: "/stats"` wird also zu `/dcapi/stats`. Der Präfix steht als `API_PREFIX` in `src/structures/Route.ts` und wird schon im Konstruktor aufgelöst — `route.path` und `route.Key` zeigen immer den echten Pfad.
 
 Der Rückgabewert von `Handle` geht als JSON raus. Wer Header oder Status setzen will, benutzt `reply` und gibt das Ergebnis zurück.
 
 Wirft `Handle`, fängt der RouteManager das ab: 500 an den Aufrufer, Meldung im Log und ein Bericht über `guardian.HandleServer()`. Ein Request endet nie ohne Antwort.
+
+---
+
+## Die Discord-Endpunkte
+
+Der Bot hängt am Gateway und hat Guilds, Rollen und Mitglieder ohnehin im Cache. Statt für jede Anfrage zu `discord.com` zu telefonieren, beantwortet der `DiscordService` sie aus diesem Cache und lädt nur nach, wenn wirklich etwas fehlt — dann kümmert sich discord.js selbst um die Rate-Limits. Nachgeladene Mitglieder liegen eine Minute in einem LRU.
+
+| Route | Antwort |
+|---|---|
+| `GET /dcapi/health` | `{ status, uptime }` |
+| `GET /dcapi/guilds` | Alle Server des Bots samt Rollen |
+| `GET /dcapi/guilds/:guildId` | Ein Server samt Rollen, sonst 404 |
+| `GET /dcapi/guilds/:guildId/members/:userId` | Nickname, Beitrittsdatum, Rollen-IDs, sonst 404 |
+| `PUT /dcapi/guilds/:guildId/members/:userId/roles/:roleId` | Rolle vergeben |
+| `DELETE /dcapi/guilds/:guildId/members/:userId/roles/:roleId` | Rolle entziehen |
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+     -X PUT https://bot.ascension-dach.org/dcapi/guilds/$GUILD/members/$USER/roles/$ROLE
+```
+
+Beide Rollen-Routen antworten mit `{ "changed": true | false }`. `false` heißt: die Rolle war schon so, es wurde nichts geschrieben — damit ist ein wiederholter Aufruf folgenlos, und ein Plugin darf beim Login einfach jedes Mal `PUT` schicken.
+
+Vergeben und Entziehen prüfen vorher, ob es überhaupt gehen kann, und liefern sonst `403` mit Klartext:
+
+- der Bot ist nicht auf dem Server
+- dem Bot fehlt die Berechtigung **Rollen verwalten**
+- die Rolle ist `@everyone`
+- die Rolle gehört einer Integration (Bot-Rolle, Booster-Rolle)
+- die Rolle steht über der höchsten Rolle des Bots
+
+Lehnt Discord die Änderung trotzdem ab, kommt `502` statt `500` — der Fehler liegt dann nicht in diesem Server.
+
+Rollen in `GET /dcapi/guilds/:guildId` tragen ein `assignable`-Flag, das genau diese Prüfung vorwegnimmt. Ein Panel kann damit direkt ausgrauen, was der Bot nicht vergeben kann.
+
+Die Zuordnung Minecraft-Account ↔ Discord-User macht der Server **nicht** — er beantwortet nur Fragen über Discord. Wer welchen Account verknüpft hat, gehört in eine eigene Tabelle (siehe [Database.md](Database.md)).
 
 ---
 
@@ -78,14 +119,16 @@ Ohne oder mit ungültigem Token kommt `401` samt `WWW-Authenticate`. Der Handler
 
 ### Warum `/images/*` offen ist
 
-Discord holt Bild-URLs **selbst** ab, um Embeds zu rendern, und schickt dabei keinen `Authorization`-Header mit. Eine Token-Pflicht auf `/images/*` würde jedes Galerie-Bild in Discord unsichtbar machen. Die Route steht deshalb bewusst auf `requiresAuth: false` und hat stattdessen ein eigenes, großzügigeres Rate Limit (300/Minute), weil eine Nachricht viele Bilder enthalten kann.
+Discord holt Bild-URLs **selbst** ab, um Embeds zu rendern, und schickt dabei keinen `Authorization`-Header mit. Eine Token-Pflicht auf `/images/*` würde jedes Galerie-Bild in Discord unsichtbar machen. Die Route steht deshalb als einzige auf `requiresAuth: false` und hat stattdessen ein eigenes, großzügigeres Rate Limit (300/Minute), weil eine Nachricht viele Bilder enthalten kann.
+
+Sie ist aus demselben Grund auch `prefixed: false` und bleibt auf `/images/*` statt `/dcapi/images/*`: die URLs stehen in bereits verschickten Nachrichten und müssen weiter stimmen. `/dcapi` ist die Schnittstelle für Plugin und Panel, `/images` die Auslieferung für Discord — zwei verschiedene Dinge, zwei verschiedene Pfade.
 
 Der Pfadschutz gegen Traversal und fremde Dateitypen bleibt davon unberührt (`ResolveImagePath`).
 
 ### Tokens erzeugen
 
 ```bash
-npm run token -- --sub webpanel
+npm run token -- --sub minecraft-plugin
 ```
 
 | Argument | Bedeutung |
@@ -119,9 +162,9 @@ Der Zähler liegt im Arbeitsspeicher: nach einem Neustart ist er leer, und mehre
 ```ts
 const server = this.client.server;
 
-server.Routes.Size                 // Anzahl registrierter Routen
-server.Routes.Keys                 // ["GET /health", "GET /images/*"]
-server.Routes.Get("GET /health")   // die Route
+server.Routes.Size                       // Anzahl registrierter Routen
+server.Routes.Keys                       // ["GET /dcapi/health", "GET /images/*", ...]
+server.Routes.Get("GET /dcapi/health")   // die Route
 server.Routes.Has(key)
 server.Routes.Register(route)      // false bei doppelter Methode+Pfad
 server.Routes.Remove(key)

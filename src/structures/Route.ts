@@ -3,6 +3,8 @@ import BotClient from "../client/BotClient";
 import IRoute from "../interfaces/routes/IRoute";
 import IRouteOptions, { IRateLimit } from "../interfaces/routes/IRouteOptions";
 
+export const API_PREFIX = "/dcapi";
+
 export default abstract class Route implements IRoute {
     client: BotClient;
     method: HTTPMethods;
@@ -14,7 +16,7 @@ export default abstract class Route implements IRoute {
     constructor(client: BotClient, options: IRouteOptions) {
         this.client = client;
         this.method = options.method;
-        this.path = options.path;
+        this.path = options.prefixed === false ? options.path : `${API_PREFIX}${options.path}`;
         this.description = options.description;
         this.requiresAuth = options.requiresAuth ?? true;
         this.rateLimit = options.rateLimit ?? null;

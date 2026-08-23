@@ -8,7 +8,7 @@ import IConfigOption from "../interfaces/services/config/IConfigOption";
 import IConfigPage from "../interfaces/services/config/IConfigPage";
 import IConfigService, { ConfigChangeHandler } from "../interfaces/services/config/IConfigService";
 import { CONFIG_SCHEMAS, ValidateEntry } from "../constants/ConfigSchemas";
-import { CUSTOM_EMOJI, MAX_DESCRIPTION, MAX_LABEL, MAX_SELECT_OPTIONS, MAX_VALUE } from "../constants/Discord";
+import { SNOWFLAKE, MAX_DESCRIPTION, MAX_LABEL, MAX_SELECT_OPTIONS, MAX_VALUE } from "../constants/Discord";
 import logger from "../utils/logger";
 
 const EXTENSION = ".json";
@@ -55,7 +55,7 @@ function ToSelectOption(option: IConfigOption): StringSelectMenuOptionBuilder {
         .setValue(option.value.slice(0, MAX_VALUE));
 
     if (option.description) builder.setDescription(option.description.slice(0, MAX_DESCRIPTION));
-    if (option.emoji) builder.setEmoji(CUSTOM_EMOJI.test(option.emoji) ? { id: option.emoji } : option.emoji);
+    if (option.emoji) builder.setEmoji(SNOWFLAKE.test(option.emoji) ? { id: option.emoji } : option.emoji);
 
     return builder;
 }

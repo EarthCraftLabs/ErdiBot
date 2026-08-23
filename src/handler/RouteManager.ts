@@ -126,7 +126,11 @@ export default class RouteManager implements IRouteManager {
 
     private async Dispatch(route: Route, request: FastifyRequest, reply: FastifyReply): Promise<unknown> {
         try {
-            return await route.Handle(request, reply);
+            const result = await route.Handle(request, reply);
+
+            logger.http(route.method, request.url, reply.statusCode);
+
+            return result;
         } catch (error) {
             const normalized = error instanceof Error ? error : new Error(String(error));
 
