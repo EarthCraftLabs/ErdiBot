@@ -182,21 +182,34 @@ export default class WelcomeService implements IWelcomeService {
     }
 
     Context(member: GuildMember): IPlaceholderContext {
+        const { guild } = member;
+
         return {
             mention: `<@${member.id}>`,
+            id: member.id,
             username: member.user.username,
             displayName: member.displayName,
             tag: member.user.tag,
-            guild: member.guild.name,
-            memberCount: member.guild.memberCount,
+            guild: guild.name,
+            memberCount: guild.memberCount,
             avatar: member.displayAvatarURL({ extension: "png", size: 512 }),
             joinedAt: member.joinedAt ?? new Date(),
+            createdAt: member.user.createdAt,
+            boosts: guild.premiumSubscriptionCount ?? 0,
+            tier: Number(guild.premiumTier),
+            channels: guild.channels.cache.size,
+            roles: guild.roles.cache.size,
+            emojis: guild.emojis.cache.size,
         };
     }
 
-    Fill(template: string, context: IPlaceholderContext): string {
+    // Auf der Karte gibt es keine Mentions - dort wird {user} zum Anzeigenamen.
+    Fill(template: string, context: IPlaceholderContext, plain = false): string {
+        const age = Math.max(0, Math.floor((Date.now() - context.createdAt.getTime()) / 86_400_000));
+
         const values: Record<string, string> = {
-            "{user}": context.mention,
+            "{user}": plain ? `@${context.displayName}` : context.mention,
+            "{id}": context.id,
             "{username}": context.username,
             "{displayname}": context.displayName,
             "{tag}": context.tag,
@@ -204,6 +217,14 @@ export default class WelcomeService implements IWelcomeService {
             "{membercount}": String(context.memberCount),
             "{ordinal}": Ordinal(context.memberCount),
             "{date}": context.joinedAt.toLocaleDateString("de-DE"),
+            "{time}": context.joinedAt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+            "{created}": context.createdAt.toLocaleDateString("de-DE"),
+            "{accountage}": String(age),
+            "{boosts}": String(context.boosts),
+            "{tier}": String(context.tier),
+            "{channels}": String(context.channels),
+            "{roles}": String(context.roles),
+            "{emojis}": String(context.emojis),
         };
 
         return template.replace(/\{[a-z]+\}/gi, (match) => values[match.toLowerCase()] ?? match);
@@ -212,6 +233,7 @@ export default class WelcomeService implements IWelcomeService {
     async Preview(config: IWelcomeConfig, guildName: string): Promise<AttachmentBuilder> {
         return this.Render(config, {
             mention: `@${PREVIEW_MEMBER.displayName}`,
+            id: "1059621019947634739",
             username: PREVIEW_MEMBER.username,
             displayName: PREVIEW_MEMBER.displayName,
             tag: PREVIEW_MEMBER.username,
@@ -219,6 +241,12 @@ export default class WelcomeService implements IWelcomeService {
             memberCount: PREVIEW_MEMBER.memberCount,
             avatar: PREVIEW_AVATAR,
             joinedAt: new Date(),
+            createdAt: new Date(Date.now() - 420 * 86_400_000),
+            boosts: 14,
+            tier: 2,
+            channels: 48,
+            roles: 23,
+            emojis: 61,
         });
     }
 
@@ -330,7 +358,7 @@ export default class WelcomeService implements IWelcomeService {
             ctx.shadowOffsetY = Math.max(1, layer.size / 14);
         }
 
-        const lines = this.Wrap(ctx, this.Fill(layer.text, context), layer.maxWidth);
+        const lines = this.Wrap(ctx, this.Fill(layer.text, context, true), layer.maxWidth);
         const height = layer.size * 1.25;
 
         lines.forEach((line, index) => {

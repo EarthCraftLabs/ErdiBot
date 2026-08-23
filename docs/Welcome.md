@@ -14,7 +14,7 @@ Zugriff über den Client: `this.client.welcomeService`.
 | `src/services/WelcomeService.ts` | Konfiguration laden/speichern, Schriften registrieren, Karte rendern |
 | `src/builder/WelcomePanel.ts` | Zeichnet das Setup-Panel, hält dessen Zustand |
 | `src/builder/WelcomeMessage.ts` | Baut die fertige Nachricht — für Testlauf **und** echten Beitritt |
-| `src/events/client/WelcomeHandler.ts` | Bedient das Panel (Buttons, Selects, Modals) |
+| `src/events/welcome/WelcomeHandler.ts` | Bedient das Panel (Buttons, Selects, Modals) |
 | `src/events/guild/GuildMemberAdd.ts` | Schickt sie beim Beitritt raus |
 | `src/constants/Welcome.ts` | Standardkarte, Grenzen, Ankermathematik, Normalisierung |
 | `src/config/welcome.json` | **Alle** Select-Optionen |
@@ -44,6 +44,18 @@ Der Modus entscheidet auch, ob das Panel überhaupt eine Vorschau rendert: bei `
 `Administrator` vorausgesetzt, die Antwort ist ephemeral. Das Panel arbeitet auf einer **Arbeitskopie**: alles, was du änderst, landet erst mit **💾 Speichern** in der Datenbank. **↩️ Verwerfen** holt den gespeicherten Stand zurück, **🗑️ Zurücksetzen** löscht die Zeile und stellt die Standardkarte her.
 
 Solange etwas offen ist, steht oben ein Hinweis — der Speichern-Knopf ist sonst ausgegraut.
+
+### Select-Menüs zeigen keine Vorauswahl
+
+Ein Select mit `default: true` lässt sich nicht noch einmal auf denselben Wert stellen — Discord meldet keine Änderung, und der Knopf fühlt sich kaputt an.
+Beim Bauen einer Karte passiert genau das ständig: Farbe testen, weiterklicken, dieselbe Farbe nochmal.
+
+Deshalb tragen die Selects **keine** Vorauswahl, sondern immer ihren Platzhaltertext. Was gerade eingestellt ist, steht im Text darüber:
+
+> 🎨 **Farbe:** `#2B2D31` → `#5865F2`
+
+**Eine Ausnahme:** die Bild-Auswahl. Dort ist gerade nicht ablesbar, welches Bild drinsteckt, also markiert der Select es —
+und weist darauf hin, wenn das eingestellte Bild gar nicht mehr in der Galerie liegt.
 
 ### Die Ansichten
 
@@ -184,18 +196,33 @@ Eine Farbe hinzufügen heisst also: eine Zeile JSON. Kein TypeScript anfassen.
 
 ## Platzhalter
 
-| Platzhalter | Wird zu |
-|---|---|
-| `{user}` | Erwähnung |
-| `{username}` | Discord-Benutzername |
-| `{displayname}` | Anzeigename im Server |
-| `{tag}` | Benutzername mit Discriminator |
-| `{server}` | Servername |
-| `{membercount}` | Mitgliederzahl |
-| `{ordinal}` | Mitgliederzahl als `42.` |
-| `{date}` | Beitrittsdatum |
+Siebzehn Stück, gültig in Kartentexten **und** im Container:
 
-Gültig in Kartentexten **und** im Container. Gross-/Kleinschreibung ist egal, Unbekanntes bleibt unverändert stehen — `{gibtsnicht}` wird nicht zu einer leeren Stelle.
+| Mitglied | Server | Zeit |
+|---|---|---|
+| `{user}` | `{server}` | `{date}` |
+| `{username}` | `{membercount}` | `{time}` |
+| `{displayname}` | `{ordinal}` | `{created}` |
+| `{tag}` | `{boosts}` | `{accountage}` |
+| `{id}` | `{tier}` | |
+| | `{channels}` | |
+| | `{roles}` | |
+| | `{emojis}` | |
+
+`{ordinal}` ist die Mitgliederzahl als `42.`, `{accountage}` das Kontoalter in Tagen, `{tier}` die Boost-Stufe.
+Die vollständige Liste mit Beschreibungen steht in `src/config/welcome.json` und hinter dem Knopf **🔣 Platzhalter** im Panel.
+
+Gross-/Kleinschreibung ist egal, Unbekanntes bleibt unverändert stehen — `{gibtsnicht}` wird nicht zu einer leeren Stelle.
+
+### `{user}` verhält sich je nach Ziel anders
+
+Eine Erwähnung ist `<@123…>` — Discord löst das im Chat auf, eine Canvas-Karte aber nicht. Dort stünde die rohe ID.
+Deshalb kennt `Fill()` einen `plain`-Modus, den nur der Renderer benutzt:
+
+```ts
+service.Fill("{user}", context);        // "<@1059621019947634739>"  → Container
+service.Fill("{user}", context, true);  // "@MecryTv"                → Karte
+```
 
 ---
 
@@ -217,3 +244,6 @@ npm test
 ```
 
 `Welcome.test.ts` prüft: Farbvalidierung, Klemmen, Ankermathematik, die Normalisierung gegen absichtlich kaputtes JSON, alle Platzhalter, Anlegen/Verschieben/Löschen von Ebenen, drei echt gerenderte PNGs samt Abmessungen, dass jede Schrift aus der Config auch auf der Platte liegt, 14 Panel-Zustände gegen die Component-Limits und alle drei Ausgabemodi.
+
+Zwei Prüfungen halten die Config und den Code zusammen: jeder Platzhalter aus `welcome.json` muss von `Fill()` auch wirklich ersetzt werden,
+und keine Options-Liste darf eine Vorauswahl mitbringen.

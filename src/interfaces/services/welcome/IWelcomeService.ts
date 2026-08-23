@@ -13,6 +13,7 @@ export interface IFontEntry {
 
 export interface IPlaceholderContext {
     mention: string;
+    id: string;
     username: string;
     displayName: string;
     tag: string;
@@ -20,6 +21,12 @@ export interface IPlaceholderContext {
     memberCount: number;
     avatar: string;
     joinedAt: Date;
+    createdAt: Date;
+    boosts: number;
+    tier: number;
+    channels: number;
+    roles: number;
+    emojis: number;
 }
 
 export default interface IWelcomeService {
@@ -36,7 +43,7 @@ export default interface IWelcomeService {
     RemoveLayer(card: IWelcomeCard, id: string): boolean;
     MoveLayer(card: IWelcomeCard, id: string, direction: -1 | 1): boolean;
 
-    Fill(template: string, context: IPlaceholderContext): string;
+    Fill(template: string, context: IPlaceholderContext, plain?: boolean): string;
     Context(member: GuildMember): IPlaceholderContext;
 
     Render(config: IWelcomeConfig, context: IPlaceholderContext): Promise<AttachmentBuilder>;

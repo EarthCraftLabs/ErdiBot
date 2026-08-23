@@ -13,7 +13,7 @@ Zugriff über den Client: `this.client.devLogsService`.
 | `src/commands/dev/DevLogs.ts` | `/devlogs` — öffnet das Panel |
 | `src/services/DevLogsService.ts` | Dateien finden, scannen, seitenweise lesen, durchsuchen |
 | `src/builder/DevLogsPanel.ts` | Zeichnet das Panel, hält dessen Zustand |
-| `src/events/client/DevLogsHandler.ts` | Bedient das Panel (Buttons, Select, Modals) |
+| `src/events/devlogs/DevLogsHandler.ts` | Bedient das Panel (Buttons, Select, Modals) |
 | `src/constants/DevLogs.ts` | Pfad-Auflösung, Formatierung, Limits — ohne Abhängigkeiten |
 
 Die Sessions selbst kommen vom `ChronicleLogger`: `getSessionHistory()`, `getSessionsDirectory()`, `getSessionsPerPage()` und `getCurrentSessionNumber()`. Der Service legt nichts eigenes an, er liest nur.

@@ -89,6 +89,7 @@ const service = new WelcomeService({} as never);
 
 const context: IPlaceholderContext = {
     mention: "<@1059621019947634739>",
+    id: "1059621019947634739",
     username: "mecrytv",
     displayName: "MecryTv",
     tag: "mecrytv",
@@ -96,6 +97,12 @@ const context: IPlaceholderContext = {
     memberCount: 1337,
     avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
     joinedAt: new Date("2026-08-23T12:00:00.000Z"),
+    createdAt: new Date(Date.now() - 100 * 86_400_000),
+    boosts: 14,
+    tier: 2,
+    channels: 48,
+    roles: 23,
+    emojis: 61,
 };
 
 assert.equal(service.Fill("Hallo {displayname}!", context), "Hallo MecryTv!");
@@ -104,6 +111,14 @@ assert.equal(service.Fill("Du bist {ordinal} Mitglied", context), "Du bist 1337.
 assert.equal(service.Fill("{DISPLAYNAME}", context), "MecryTv", "Platzhalter sind case-insensitive");
 assert.equal(service.Fill("{gibtsnicht}", context), "{gibtsnicht}", "Unbekanntes bleibt stehen");
 assert.equal(service.Fill("100% {membercount}", context), "100% 1337");
+assert.equal(service.Fill("{id}", context), "1059621019947634739");
+assert.equal(service.Fill("{accountage} Tage", context), "100 Tage");
+assert.equal(service.Fill("{boosts}/{tier} · {channels} · {roles} · {emojis}", context), "14/2 · 48 · 23 · 61");
+assert.equal(service.Fill("{date} {time}", context), `${context.joinedAt.toLocaleDateString("de-DE")} ${context.joinedAt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`);
+
+// Auf einer Canvas-Karte gibt es keine Mentions - dort muss ein Name stehen, keine Roh-ID.
+assert.equal(service.Fill("{user}", context, true), "@MecryTv");
+assert.equal(service.Fill("{user}", context, false), "<@1059621019947634739>");
 
 const editable = DefaultCard();
 const before = editable.layers.length;
@@ -246,6 +261,26 @@ async function main(): Promise<void> {
     await configService.Initialize();
 
     assert.ok(configService.Has("welcome"), "src/config/welcome.json muss geladen sein");
+
+    // Jeder Platzhalter aus der Config muss auch wirklich ersetzt werden.
+    for (const entry of configService.Options("welcome", "placeholders")) {
+        assert.notEqual(
+            service.Fill(entry.value, context),
+            entry.value,
+            `Platzhalter aus der Config wird nicht ersetzt: ${entry.value}`
+        );
+    }
+
+    // Keine Vorauswahl in den Selects - sonst lässt sich derselbe Wert nicht erneut wählen.
+    for (const field of ["fonts", "modes", "colors", "anchors", "effects", "aligns", "presets", "fits"]) {
+        for (const entry of configService.Options("welcome", field)) {
+            assert.equal(
+                (entry as { default?: boolean }).default,
+                undefined,
+                `${field}: die Config darf keine Vorauswahl mitbringen`
+            );
+        }
+    }
     assert.equal(configService.Options("welcome", "fonts").length, service.Fonts.length, "Config und Manifest müssen dieselben Schriften kennen");
 
     for (const font of configService.Options("welcome", "fonts")) {

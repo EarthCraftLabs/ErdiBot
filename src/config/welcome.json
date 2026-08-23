@@ -464,7 +464,7 @@
         "placeholders": [
             {
                 "name": "{user}",
-                "description": "Erwähnung des Mitglieds",
+                "description": "Erwähnung — auf der Karte der Anzeigename",
                 "value": "{user}",
                 "emoji": "📣"
             },
@@ -487,6 +487,12 @@
                 "emoji": "#️⃣"
             },
             {
+                "name": "{id}",
+                "description": "Discord-ID des Mitglieds",
+                "value": "{id}",
+                "emoji": "🆔"
+            },
+            {
                 "name": "{server}",
                 "description": "Name des Servers",
                 "value": "{server}",
@@ -500,15 +506,63 @@
             },
             {
                 "name": "{ordinal}",
-                "description": "Mitgliederzahl als 42. Mitglied",
+                "description": "Mitgliederzahl als 42.",
                 "value": "{ordinal}",
                 "emoji": "🥇"
             },
             {
                 "name": "{date}",
-                "description": "Beitrittsdatum, kurz",
+                "description": "Beitrittsdatum",
                 "value": "{date}",
                 "emoji": "📅"
+            },
+            {
+                "name": "{time}",
+                "description": "Beitrittszeit als 14:05",
+                "value": "{time}",
+                "emoji": "⏰"
+            },
+            {
+                "name": "{created}",
+                "description": "Erstelldatum des Discord-Kontos",
+                "value": "{created}",
+                "emoji": "🎂"
+            },
+            {
+                "name": "{accountage}",
+                "description": "Alter des Kontos in Tagen",
+                "value": "{accountage}",
+                "emoji": "⌛"
+            },
+            {
+                "name": "{boosts}",
+                "description": "Anzahl der Server-Boosts",
+                "value": "{boosts}",
+                "emoji": "🚀"
+            },
+            {
+                "name": "{tier}",
+                "description": "Boost-Stufe des Servers",
+                "value": "{tier}",
+                "emoji": "⭐"
+            },
+            {
+                "name": "{channels}",
+                "description": "Anzahl der Kanäle",
+                "value": "{channels}",
+                "emoji": "📚"
+            },
+            {
+                "name": "{roles}",
+                "description": "Anzahl der Rollen",
+                "value": "{roles}",
+                "emoji": "🎭"
+            },
+            {
+                "name": "{emojis}",
+                "description": "Anzahl der Emojis",
+                "value": "{emojis}",
+                "emoji": "😀"
             }
         ]
     }

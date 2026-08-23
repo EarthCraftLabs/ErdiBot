@@ -37,13 +37,14 @@ export function ActiveLayer(state: IWelcomeState): WelcomeLayer | null {
     return state.config.card.layers.find((layer) => layer.id === state.layerId) ?? null;
 }
 
-function Choices(client: BotClient, field: string, selected?: string | null): ISelectEntryOptions[] {
+// Bewusst ohne `default`: eine vorausgewählte Option lässt sich nicht noch einmal auswählen,
+// und genau das braucht man beim Bauen einer Karte ständig. Der aktuelle Wert steht im Text darüber.
+function Choices(client: BotClient, field: string): ISelectEntryOptions[] {
     return client.configService.Options(CONFIG_KEY, field).map((option) => ({
         label: option.name.slice(0, 100),
         value: option.value,
         description: option.description ? option.description.slice(0, 100) : undefined,
         emoji: option.emoji || undefined,
-        default: option.value === selected,
     }));
 }
 
@@ -52,10 +53,9 @@ function Select(
     client: BotClient,
     field: string,
     action: string,
-    placeholder: string,
-    selected?: string | null
+    placeholder: string
 ): void {
-    const options = Choices(client, field, selected);
+    const options = Choices(client, field);
     if (options.length === 0) return;
 
     builder.select({ customId: `${PANEL_PREFIX}:${action}`, placeholder, options });
@@ -93,10 +93,9 @@ function Home(builder: ComponentV2Builder, client: BotClient, state: IWelcomeSta
         customId: `${PANEL_PREFIX}:channel`,
         channelTypes: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
         placeholder: "📢 | Willkommens-Kanal wählen...",
-        defaultChannel: config.channelId,
     });
 
-    Select(builder, client, "modes", "mode", "🧩 | Ausgabe wählen...", config.mode);
+    Select(builder, client, "modes", "mode", "🧩 | Ausgabe wählen...");
 
     builder.buttons(
         { customId: `${PANEL_PREFIX}:card`, label: "Karte", emoji: "🎨", tone: "primary" },
@@ -125,10 +124,10 @@ function Card(builder: ComponentV2Builder, client: BotClient, state: IWelcomeSta
 
     builder.gallery(PREVIEW);
 
-    Select(builder, client, "presets", "preset", "📐 | Kartengrösse wählen...", `${card.width}x${card.height}`);
-    Select(builder, client, "fits", "fit", "🖼️ | Bild-Anpassung wählen...", card.fit);
-    Select(builder, client, "colors", "cardcolor", "🎨 | Grundfarbe wählen...", card.color);
-    Select(builder, client, "colors", "cardgradient", "🌈 | Verlaufsfarbe wählen...", card.gradient);
+    Select(builder, client, "presets", "preset", "📐 | Kartengrösse wählen...");
+    Select(builder, client, "fits", "fit", "🖼️ | Bild-Anpassung wählen...");
+    Select(builder, client, "colors", "cardcolor", "🎨 | Grundfarbe wählen...");
+    Select(builder, client, "colors", "cardgradient", "🌈 | Verlaufsfarbe wählen...");
 
     builder.buttons(
         { customId: `${PANEL_PREFIX}:bgupload`, label: "Bild hochladen", emoji: "⬆️", tone: "success" },
@@ -162,7 +161,6 @@ function Layers(builder: ComponentV2Builder, client: BotClient, state: IWelcomeS
                 label: LayerLabel(layer).slice(0, 100),
                 value: layer.id,
                 description: `${layer.anchor} · ${layer.offsetX}/${layer.offsetY}`,
-                default: layer.id === state.layerId,
             })),
         });
     }
@@ -193,7 +191,7 @@ function Layer(builder: ComponentV2Builder, client: BotClient, state: IWelcomeSt
     if (layer.type === "image") ImageLayer(builder, client, layer);
     if (layer.type === "shape") Shape(builder, client, layer);
 
-    Select(builder, client, "anchors", "anchor", "📍 | Ankerpunkt wählen...", layer.anchor);
+    Select(builder, client, "anchors", "anchor", "📍 | Ankerpunkt wählen...");
 
     builder.buttons(
         { customId: `${PANEL_PREFIX}:position`, label: "Position…", emoji: "📐", tone: "primary" },
@@ -216,10 +214,10 @@ function Text(builder: ComponentV2Builder, client: BotClient, layer: ITextLayer)
             `🎨 **Farbe:** \`${layer.color}\` · **Effekt:** ${layer.effect} \`${layer.effectColor}\``
     );
 
-    Select(builder, client, "fonts", "font", "🔤 | Schriftart wählen...", layer.font);
-    Select(builder, client, "colors", "textcolor", "🎨 | Textfarbe wählen...", layer.color);
-    Select(builder, client, "effects", "effect", "✨ | Effekt wählen...", layer.effect);
-    Select(builder, client, "aligns", "align", "↔️ | Ausrichtung wählen...", layer.align);
+    Select(builder, client, "fonts", "font", "🔤 | Schriftart wählen...");
+    Select(builder, client, "colors", "textcolor", "🎨 | Textfarbe wählen...");
+    Select(builder, client, "effects", "effect", "✨ | Effekt wählen...");
+    Select(builder, client, "aligns", "align", "↔️ | Ausrichtung wählen...");
 
     builder.buttons(
         { customId: `${PANEL_PREFIX}:edittext`, label: "Text ändern", emoji: "📝", tone: "primary" },
@@ -233,8 +231,8 @@ function Text(builder: ComponentV2Builder, client: BotClient, layer: ITextLayer)
 function Avatar(builder: ComponentV2Builder, client: BotClient, layer: IAvatarLayer): void {
     builder.text(`🖼️ **Grösse:** ${layer.size}px · **Rahmen:** ${layer.border}px \`${layer.borderColor}\``);
 
-    Select(builder, client, "avatars", "avatarshape", "⭕ | Form wählen...", layer.shape);
-    Select(builder, client, "colors", "bordercolor", "🎨 | Rahmenfarbe wählen...", layer.borderColor);
+    Select(builder, client, "avatars", "avatarshape", "⭕ | Form wählen...");
+    Select(builder, client, "colors", "bordercolor", "🎨 | Rahmenfarbe wählen...");
 
     builder.buttons({ customId: `${PANEL_PREFIX}:avatarnumbers`, label: "Grösse & Rahmen", emoji: "🔢", tone: "primary" });
 }
@@ -254,8 +252,8 @@ function ImageLayer(builder: ComponentV2Builder, client: BotClient, layer: IImag
 function Shape(builder: ComponentV2Builder, client: BotClient, layer: IShapeLayer): void {
     builder.text(`⬛ **Grösse:** ${layer.width}×${layer.height} · **Farbe:** \`${layer.color}\` · **Ecken:** ${layer.radius}px`);
 
-    Select(builder, client, "shapes", "shapekind", "⬛ | Form wählen...", layer.shape);
-    Select(builder, client, "colors", "shapecolor", "🎨 | Farbe wählen...", layer.color);
+    Select(builder, client, "shapes", "shapekind", "⬛ | Form wählen...");
+    Select(builder, client, "colors", "shapecolor", "🎨 | Farbe wählen...");
 
     builder.buttons({ customId: `${PANEL_PREFIX}:shapenumbers`, label: "Grösse & Ecken", emoji: "🔢", tone: "primary" });
 }
@@ -268,7 +266,7 @@ function Message(builder: ComponentV2Builder, client: BotClient, state: IWelcome
             `🎨 **Akzentfarbe:** \`${config.accent}\``
     );
 
-    Select(builder, client, "colors", "accent", "🎨 | Akzentfarbe wählen...", config.accent);
+    Select(builder, client, "colors", "accent", "🎨 | Akzentfarbe wählen...");
 
     builder.buttons(
         { customId: `${PANEL_PREFIX}:edittitle`, label: "Titel ändern", emoji: "🏷️", tone: "primary" },
@@ -310,6 +308,10 @@ async function Category(builder: ComponentV2Builder, client: BotClient, state: I
 
 async function Picker(builder: ComponentV2Builder, client: BotClient, state: IWelcomeState): Promise<void> {
     const images = await client.galleryService.SearchImages(state.guildId, "", { includeDefault: true, limit: 25 });
+    const layer = ActiveLayer(state);
+
+    // Einzige Stelle mit Vorauswahl: hier will man sehen, welches Bild gerade drin ist.
+    const current = state.target === "background" ? state.config.card.background : layer?.type === "image" ? layer.image : null;
 
     builder.text(images.length > 0 ? "Welches Bild soll es sein?" : "Es gibt noch keine Bilder in der Galerie.");
 
@@ -321,8 +323,13 @@ async function Picker(builder: ComponentV2Builder, client: BotClient, state: IWe
                 label: image.file.slice(0, 100),
                 value: image.id,
                 description: image.shortPath.slice(0, 100),
+                default: image.id === current,
             })),
         });
+    }
+
+    if (current && !images.some((image) => image.id === current)) {
+        builder.subtext("Das eingestellte Bild steht nicht in dieser Liste — es wurde vermutlich gelöscht.");
     }
 
     builder.buttons({ customId: `${PANEL_PREFIX}:back`, label: "Zurück", emoji: "⬅️", tone: "danger" });
