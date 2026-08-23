@@ -3,7 +3,7 @@ import LogLevel from "../enums/LogLevel";
 
 const logger = new ChronicleLogger({
     namespace: "bot",
-    level: process.env.NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG,
+    level: process.argv.includes("--dev") ? LogLevel.DEBUG : LogLevel.INFO,
     reportVersionsOf: ["discord.js"],
     version: "1.0.0",
     developer: "MecryTv",

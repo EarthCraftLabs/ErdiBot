@@ -10,12 +10,12 @@ Zugriff überall über den Client: `this.client.galleryService` (in Commands und
 
 | Datei | Aufgabe |
 |---|---|
+| `src/commands/admin/Gallery.ts` | Der einzige Command — öffnet das Panel |
 | `src/services/GalleryService.ts` | Kategorien und Bilder lesen, anlegen, verschieben, löschen |
 | `src/Server.ts` + `src/routes/Images.ts` | Liefert `src/images` unter `/images/*` aus |
 | `src/builder/GalleryPanel.ts` | Zeichnet das `/gallery`-Panel, hält dessen Zustand |
 | `src/events/client/InteractionHandler.ts` | Bedient das Panel (Buttons, Selects, Modal) |
 | `src/constants/Gallery.ts` | Pfad-Auflösung, Sanitizing, Host-Filter — ohne Abhängigkeiten |
-| `src/utils/galleryOptions.ts` | Gemeinsames Autocomplete aller Bild-Commands |
 | `src/database/models/GalleryImage.ts` | Ein Bild |
 | `src/database/models/GalleryCategory.ts` | Ein Ordner (auch ein leerer) |
 
@@ -25,7 +25,7 @@ Zugriff überall über den Client: `this.client.galleryService` (in Commands und
 
 1. `BotClient.Init()` startet den `Server` sofort — der braucht keine Datenbank.
 2. Nach `database.Connect()` läuft `galleryService.Initialize()`.
-3. `Initialize()` legt `src/images/default` an und ruft `SyncDefaults()`.
+3. `Initialize()` legt `src/images/default` und `src/images/privacy` an und ruft `SyncDefaults()`.
 4. `SyncDefaults()` liest den Ordner einmal ein, upsertet alles nach MariaDB und löscht Einträge zu Dateien, die es nicht mehr gibt.
 
 Ab da ist **die Datenbank die einzige Quelle** für alle Lesezugriffe — auch für die mitgelieferten Bilder. Deshalb gibt es keinen zweiten Codepfad für Default gegen Custom.
@@ -82,18 +82,11 @@ Beide sind gecacht (Standard des `DatabaseConnection`): leselastig, selten gesch
 
 ---
 
-## Die Commands
+## Der Command
 
-| Command | Wofür |
-|---|---|
-| `/gallery` | Das Panel — ansehen, hochladen, verschieben, löschen, Kategorien verwalten |
-| `/viewimages [kategorie] [unterkategorie]` | Ohne Optionen öffnet das Panel, mit Kategorie direkt die Galerie |
-| `/uploadimage kategorie [bild] [url] [unterkategorie] [name]` | Ein Bild per Anhang oder URL |
-| `/deleteimage bild` | Ein Bild, mit Rückfrage |
-| `/moveimage bild ziel-kategorie [ziel-unterkategorie]` | Ein Bild umhängen |
-| `/manageimagecategories erstellen \| loeschen \| liste` | Kategorien ohne Panel |
+Genau einer: **`/gallery`** in `src/commands/admin/Gallery.ts`, `Administrator` vorausgesetzt. Er öffnet das Panel, alles Weitere passiert dort — ansehen, blättern, hochladen, verschieben, löschen, Kategorien anlegen und entfernen.
 
-Alle brauchen `Administrator`. Die Optionen `kategorie`, `unterkategorie`, `ziel-kategorie`, `ziel-unterkategorie` und `bild` sind durchgehend **Autocomplete** — es gibt keine Modal-Kaskaden.
+Ein Panel statt sechs Commands, weil die Optionen ohnehin voneinander abhingen: erst die Kategorie, dann der Unterordner, dann das Bild. Ein Slash-Command muss dafür jedes Mal komplett neu ausgefüllt werden, das Panel behält den Ort einfach bei.
 
 ---
 
@@ -144,7 +137,7 @@ Verschieben nutzt bewusst die normale Navigation als Zielauswahl, statt ein eige
 
 ### Multi-Upload
 
-**⬆️ Hochladen** setzt das Panel auf Warten und sammelt **eine** Nachricht mit Anhängen aus dem Kanal (90 Sekunden, Discord erlaubt 10 Anhänge pro Nachricht). Jede Datei läuft einzeln durch `AddImage()` — eine kaputte bricht den Rest nicht ab, sie landet in der Übersprungen-Zählung. Die Upload-Nachricht wird danach gelöscht.
+**⬆️ Hochladen** setzt das Panel auf Warten und sammelt **eine** Nachricht aus dem Kanal (90 Sekunden). Es zählt beides: Anhänge (Discord erlaubt 10 pro Nachricht) und `https://`-Links im Text, beliebig gemischt. Jede Quelle läuft einzeln durch `AddImage()` — eine kaputte bricht den Rest nicht ab, sie landet in der Übersprungen-Zählung. Die Upload-Nachricht wird danach gelöscht.
 
 ### customIds
 
@@ -161,7 +154,7 @@ gallery:panel:refresh                     Neu zeichnen
 gallery:panel:newcat:<messageId>          Modal
 ```
 
-Der `InteractionHandler` reagiert **nur** auf dieses Präfix. Buttons anderer Commands (Blättern in `/viewimages`, Bestätigen in `/deleteimage`) laufen über eigene Collectors — würde der Handler sie mitbeantworten, gäbe es `40060 Interaction has already been acknowledged`.
+Der `InteractionHandler` reagiert **nur** auf dieses Präfix. Eigene Buttons brauchen ein anderes — sonst beantwortet der Handler sie mit, und Discord meldet `40060 Interaction has already been acknowledged`.
 
 ---
 
@@ -334,37 +327,6 @@ Beim Download zusätzlich:
 - Bei einem Abbruch wird die halbe Datei wieder gelöscht
 
 Kein Schutz gegen DNS-Rebinding — reicht, solange nur Administratoren Uploads auslösen.
-
----
-
-## Autocomplete in eigenen Commands
-
-```ts
-import GalleryAutoComplete, { ParseCategory } from "../../../utils/galleryOptions";
-
-async AutoComplete(interaction: AutocompleteInteraction): Promise<void> {
-    await GalleryAutoComplete(interaction, { includeDefault: false, requireImages: false });
-}
-```
-
-Erwartete Optionsnamen: `kategorie`, `unterkategorie`, `ziel-kategorie`, `ziel-unterkategorie`, `bild`.
-
-| Option | Wert |
-|---|---|
-| `kategorie`, `ziel-kategorie` | `"<guildId>:<name>"` → mit `ParseCategory()` zerlegen |
-| `unterkategorie`, `ziel-unterkategorie` | Nur der Name — die Ebene darüber steht schon in der Kategorie-Option |
-| `bild` | Die Zeilen-ID |
-
-```ts
-const target = ParseCategory(interaction.options.getString("kategorie", true));
-if (!target || target.guildId !== interaction.guildId) {
-    // "default" oder eine fremde Guild - Schreibzugriff verweigern
-}
-```
-
-`includeDefault: false` blendet die Default-Kategorien aus. Für alles Schreibende richtig, sonst schlägst du dem Nutzer Ordner vor, die er nicht anfassen darf.
-
-Damit Autocomplete überhaupt ankommt, routet der `CommandHandler` `isAutocomplete()` an `Command.AutoComplete()`. Fehler landen dort nur im Log — das 3-Sekunden-Fenster ist zu kurz für einen Guardian-Report.
 
 ---
 

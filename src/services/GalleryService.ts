@@ -4,9 +4,8 @@ import { mkdir, readdir, rename, rm, stat, unlink } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import axios from "axios";
-import { AttachmentBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder } from "discord.js";
+import { AttachmentBuilder } from "discord.js";
 import BotClient from "../client/BotClient";
-import ComponentV2Builder from "../builder/ComponentV2Builder";
 import IGalleryCategory from "../interfaces/services/gallery/IGalleryCategory";
 import IGalleryImage from "../interfaces/services/gallery/IGalleryImage";
 import IGalleryService, {
@@ -38,11 +37,6 @@ const IMAGE_MODEL = "GalleryImage";
 const MAX_DOWNLOAD_BYTES = 8 * 1024 * 1024;
 const DOWNLOAD_TIMEOUT = 15_000;
 const MAX_SELECT_OPTIONS = 25;
-const MAX_MODAL_TITLE = 45;
-const MAX_OPTION_DESCRIPTION = 100;
-
-export const DIRECT_VALUE = "__direct";
-
 const EXTENSION_BY_MIME = new Map<string, string>();
 for (const [extension, mime] of Object.entries(IMAGE_TYPES)) {
     if (!EXTENSION_BY_MIME.has(mime)) EXTENSION_BY_MIME.set(mime, extension);

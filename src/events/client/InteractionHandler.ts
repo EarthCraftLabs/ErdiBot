@@ -20,6 +20,7 @@ import { DEFAULT_SCOPE, SanitizeName } from "../../constants/Gallery";
 import logger from "../../utils/logger";
 
 const UPLOAD_TIMEOUT = 90_000;
+const LINKS = /https:\/\/\S+/g;
 
 export default class InteractionHandler extends Event {
     constructor(client: BotClient) {
@@ -153,13 +154,17 @@ export default class InteractionHandler extends Event {
         }
 
         const deadline = Math.floor((Date.now() + UPLOAD_TIMEOUT) / 1000);
-        state.notice = `⏳ Poste jetzt deine Bilder in diesen Kanal — mehrere in einer Nachricht gehen. Läuft ab <t:${deadline}:R>`;
+        state.notice =
+            `⏳ Poste jetzt Bilder oder Links in diesen Kanal — mehrere in einer Nachricht gehen. ` +
+            `Läuft ab <t:${deadline}:R>`;
 
         await this.Apply(interaction, state);
 
         const collected = await channel
             .awaitMessages({
-                filter: (message) => message.author.id === interaction.user.id && message.attachments.size > 0,
+                filter: (message) =>
+                    message.author.id === interaction.user.id &&
+                    (message.attachments.size > 0 || (message.content.match(LINKS)?.length ?? 0) > 0),
                 max: 1,
                 time: UPLOAD_TIMEOUT,
                 errors: ["time"],
@@ -176,17 +181,24 @@ export default class InteractionHandler extends Event {
         const saved: string[] = [];
         const skipped: string[] = [];
 
-        for (const attachment of message.attachments.values()) {
+        const sources: Array<{ url: string; name?: string }> = [
+            ...message.attachments.map((attachment) => ({ url: attachment.url, name: attachment.name })),
+            ...(message.content.match(LINKS) ?? []).map((url) => ({ url })),
+        ];
+
+        for (const source of sources) {
             try {
                 const image = await this.client.galleryService.AddImage(
                     { guildId: state.homeGuildId, category: state.category!, subcategory: state.subcategory },
-                    attachment.url,
-                    attachment.name
+                    source.url,
+                    source.name
                 );
 
                 saved.push(image.file);
             } catch (error) {
-                skipped.push(`${attachment.name}: ${error instanceof Error ? error.message : String(error)}`);
+                const reason = error instanceof Error ? error.message : String(error);
+
+                skipped.push(`${source.name ?? source.url}: ${reason}`);
             }
         }
 

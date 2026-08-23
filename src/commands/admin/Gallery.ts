@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import BotClient from "../../../client/BotClient";
-import Command from "../../../structures/Command";
-import Category from "../../../enums/Category";
-import { NewPanelState, PanelStates, RenderPanel } from "../../../builder/GalleryPanel";
+import BotClient from "../../client/BotClient";
+import Command from "../../structures/Command";
+import Category from "../../enums/Category";
+import { NewPanelState, PanelStates, RenderPanel } from "../../builder/GalleryPanel";
 
 export default class Gallery extends Command {
     constructor(client: BotClient) {
