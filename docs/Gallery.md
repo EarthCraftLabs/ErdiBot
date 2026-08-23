@@ -14,7 +14,7 @@ Zugriff überall über den Client: `this.client.galleryService` (in Commands und
 | `src/services/GalleryService.ts` | Kategorien und Bilder lesen, anlegen, verschieben, löschen |
 | `src/Server.ts` + `src/routes/Images.ts` | Liefert `src/images` unter `/images/*` aus |
 | `src/builder/GalleryPanel.ts` | Zeichnet das `/gallery`-Panel, hält dessen Zustand |
-| `src/events/client/InteractionHandler.ts` | Bedient das Panel (Buttons, Selects, Modal) |
+| `src/events/gallery/GalleryHandler.ts` | Bedient das Panel (Buttons, Selects, Modal) |
 | `src/constants/Gallery.ts` | Pfad-Auflösung, Sanitizing, Host-Filter — ohne Abhängigkeiten |
 | `src/database/models/GalleryImage.ts` | Ein Bild |
 | `src/database/models/GalleryCategory.ts` | Ein Ordner (auch ein leerer) |
@@ -154,7 +154,7 @@ gallery:panel:refresh                     Neu zeichnen
 gallery:panel:newcat:<messageId>          Modal
 ```
 
-Der `InteractionHandler` reagiert **nur** auf dieses Präfix. Eigene Buttons brauchen ein anderes — sonst beantwortet der Handler sie mit, und Discord meldet `40060 Interaction has already been acknowledged`.
+Der `GalleryHandler` reagiert **nur** auf dieses Präfix. Eigene Buttons brauchen ein anderes — sonst beantwortet der Handler sie mit, und Discord meldet `40060 Interaction has already been acknowledged`.
 
 ---
 
@@ -338,7 +338,7 @@ Kein Schutz gegen DNS-Rebinding — reicht, solange nur Administratoren Uploads 
 - **Gleicher Dateiname überschreibt.** Ein Upload mit bereits vergebenem Namen ersetzt die Datei und behält den DB-Eintrag.
 - **Der Default-Scope ist schreibgeschützt.** `CreateCategory`, `AddImage`, `MoveImage` und `DeleteImage` lehnen `guildId: "default"` ab.
 - **Select-Menüs fassen 25 Optionen.** Kategorien, Unterordner und Bildlisten werden abgeschnitten, das Panel weist darauf hin.
-- **Datenbank weg heisst nicht Fehler.** `CommandHandler` und `InteractionHandler` prüfen `client.database.IsReady` und antworten mit „Datenbank nicht erreichbar", statt den Guardian zu alarmieren.
+- **Datenbank weg heisst nicht Fehler.** `CommandHandler` und `GalleryHandler` prüfen `client.database.IsReady` und antworten mit „Datenbank nicht erreichbar", statt den Guardian zu alarmieren.
 
 ---
 

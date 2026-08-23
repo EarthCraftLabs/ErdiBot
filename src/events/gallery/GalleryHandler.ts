@@ -22,7 +22,7 @@ import logger from "../../utils/logger";
 const UPLOAD_TIMEOUT = 90_000;
 const LINKS = /https:\/\/\S+/g;
 
-export default class InteractionHandler extends Event {
+export default class GalleryHandler extends Event {
     constructor(client: BotClient) {
         super(client, {
             name: Events.InteractionCreate,
@@ -41,7 +41,7 @@ export default class InteractionHandler extends Event {
             else await this.Component(interaction);
         } catch (error) {
             if (!this.client.database.IsReady) {
-                logger.warn(`[InteractionHandler] ${interaction.customId} abgebrochen: Datenbank nicht erreichbar`);
+                logger.warn(`[GalleryHandler] ${interaction.customId} abgebrochen: Datenbank nicht erreichbar`);
                 await this.Fail(interaction, "Der Bot hat gerade keine Verbindung zur Datenbank.");
 
                 return;
