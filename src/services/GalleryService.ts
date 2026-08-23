@@ -1,6 +1,6 @@
 import path from "path";
 import { createWriteStream } from "node:fs";
-import { mkdir, readdir, rename, rm, unlink } from "node:fs/promises";
+import { mkdir, readdir, rename, rm, stat, unlink } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import axios from "axios";
@@ -26,6 +26,8 @@ import {
     IsImageFile,
     IsScope,
     ParseSource,
+    PRIVATE_SCOPE,
+    ResolveImagePath,
     SanitizeName,
 } from "../constants/Gallery";
 import logger from "../utils/logger";
@@ -55,6 +57,7 @@ export default class GalleryService implements IGalleryService {
 
     async Initialize(): Promise<void> {
         await mkdir(path.join(GALLERY_ROOT, DEFAULT_SCOPE), { recursive: true });
+        await mkdir(path.join(GALLERY_ROOT, PRIVATE_SCOPE), { recursive: true });
         await this.SyncDefaults();
     }
 
@@ -110,6 +113,29 @@ export default class GalleryService implements IGalleryService {
             media: names.map((name) => `attachment://${name}`),
             files: images.map((image, index) => new AttachmentBuilder(this.FileFor(image), { name: names[index] })),
         };
+    }
+
+    async Asset(assetPath: string): Promise<IAttachedMedia> {
+        const file = ResolveImagePath(assetPath);
+        const info = file ? await stat(file).catch(() => null) : null;
+
+        if (!file || !info?.isFile()) {
+            logger.warn(`🖼️  Asset "${assetPath}" wurde nicht gefunden`);
+
+            return { media: [], files: [] };
+        }
+
+        const segments = path.relative(GALLERY_ROOT, file).split(path.sep);
+
+        if (!this.client.developerMode) {
+            const url = `${this.client.server.BaseURL}/images/${segments.map(encodeURIComponent).join("/")}`;
+
+            return { media: [url], files: [] };
+        }
+
+        const name = segments.join("_").replace(/\s+/g, "_");
+
+        return { media: [`attachment://${name}`], files: [new AttachmentBuilder(file, { name })] };
     }
 
     async CreateCategory(target: IGalleryTarget): Promise<boolean> {

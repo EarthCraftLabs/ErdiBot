@@ -6,7 +6,8 @@ config.json
 logs
 atlas-credentials.env
 .tmp-preview
-# Galerie: Default-Bilder kommen mit, Guild-Uploads nicht
+# Galerie: Default- und Privacy-Bilder kommen mit, Guild-Uploads nicht
 /src/images/*
 !/src/images/default
+!/src/images/privacy
 .vscode

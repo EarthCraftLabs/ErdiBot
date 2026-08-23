@@ -41,6 +41,8 @@ src/images/
 │       ├── logo.png
 │       └── ranks/
 │           └── gc.png
+├── privacy/                    ← kommt mit dem Repo, für die Commands unsichtbar
+│   └── Welcome_Card.png
 └── 1162553851187040326/        ← eine Guild-ID, per Upload gefüllt
     └── memes/
         └── katze.png
@@ -48,11 +50,16 @@ src/images/
 
 Genau **zwei Ebenen**: Kategorie und optional eine Unterkategorie. Tiefer wird nicht gescannt.
 
-Die `.gitignore` hält es so, dass die Default-Bilder im Repo landen und Guild-Uploads nicht:
+`privacy/` fällt aus diesem Schema heraus: der Ordner wird **nicht** gescannt und steht in keiner Tabelle.
+Er ist für feste Bot-Bilder da, die kein Nutzer über die Gallery-Commands sehen oder löschen soll —
+abgerufen wird er nur aus dem Code über [`Asset()`](#feste-bilder-aus-dem-code).
+
+Die `.gitignore` hält es so, dass die mitgelieferten Bilder im Repo landen und Guild-Uploads nicht:
 
 ```
 /src/images/*
 !/src/images/default
+!/src/images/privacy
 ```
 
 `GALLERY_ROOT` wird über `process.cwd()` aufgelöst, nicht über `__dirname` — sonst zeigte der Pfad im Build nach `dist`. Der Bot muss also aus dem Projekt-Root gestartet werden (`npm run dev` / `npm start`), und beim Deploy muss `src/images` mit auf den Server.
@@ -168,6 +175,7 @@ Der `InteractionHandler` reagiert **nur** auf dieses Präfix. Buttons anderer Co
 | `GetImage(id)` | Ein Bild über seine Zeilen-ID |
 | `SearchImages(guildId, query, { includeDefault, limit })` | Max. 25 Treffer — für Autocomplete gebaut |
 | `Attach(images)` | `{ media, files }` für eine Nachricht (siehe unten) |
+| `Asset(assetPath)` | `{ media, files }` für **ein festes Bild** aus dem Code, ohne Datenbank |
 | `CreateCategory(target)` | `boolean` — `false`, wenn es sie schon gibt |
 | `DeleteCategory(target)` | Anzahl gelöschter Bilder |
 | `AddImage(target, url, fileName?)` | Den fertigen `IGalleryEntry`, **wirft** bei Problemen |
@@ -253,6 +261,32 @@ Beim **Bearbeiten** einer Nachricht zusätzlich `attachments: []` mitgeben, sons
 
 ```ts
 await interaction.update({ ...view, flags: MessageFlags.IsComponentsV2, attachments: [] });
+```
+
+### Feste Bilder aus dem Code
+
+Für Bilder, die fest zum Bot gehören — Willkommenskarte, Transcript-Banner, Panel-Header — gibt es `Asset()`.
+Es nimmt einen Pfad relativ zu `src/images` statt einer Zeilen-ID und fragt die Datenbank gar nicht erst:
+
+```ts
+const { media, files } = await this.client.galleryService.Asset("privacy/Welcome_Card.png");
+
+await channel.send({
+    ...new ComponentV2Builder()
+        .title("👋 | Willkommen")
+        .gallery(...media)
+        .toMessage(),
+    files,
+});
+```
+
+Rückgabe ist dasselbe `{ media, files }` wie bei `Attach()`, inklusive Dev-Modus-Umschaltung — in Produktion die Web-URL, im Dev-Modus ein `attachment://`. Der Anhang heißt nach dem vollen Pfad (`privacy_Welcome_Card.png`), damit zwei gleichnamige Dateien aus verschiedenen Ordnern nicht kollidieren.
+
+Der Pfad läuft durch dieselbe `ResolveImagePath()`-Prüfung wie die HTTP-Route: kein Ausbruch aus `src/images`, nur erlaubte Bild-Endungen. Fehlt die Datei, kommt `{ media: [], files: [] }` plus eine Warnung im Log — ein vergessenes Bild reißt also keinen Command mit.
+
+```ts
+await gallery.Asset("privacy/Welcome_Card.png");        // versteckt, nur aus dem Code
+await gallery.Asset("default/rocketleague/ranks/gc.png"); // geht auch, ist aber zusätzlich im Panel sichtbar
 ```
 
 ---

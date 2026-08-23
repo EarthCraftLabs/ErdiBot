@@ -5,6 +5,8 @@ export const GALLERY_ROOT = path.join(process.cwd(), "src", "images");
 
 export const DEFAULT_SCOPE = "default";
 
+export const PRIVATE_SCOPE = "privacy";
+
 export const IMAGE_TYPES = {
     ".png": "image/png",
     ".jpg": "image/jpeg",

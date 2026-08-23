@@ -51,6 +51,7 @@ export default interface IGalleryService {
     GetImage(id: string): Promise<IGalleryEntry | null>;
     SearchImages(guildId: string, query: string, options?: ISearchOptions): Promise<IGalleryEntry[]>;
     Attach(images: IGalleryEntry[]): IAttachedMedia;
+    Asset(assetPath: string): Promise<IAttachedMedia>;
 
     CreateCategory(target: IGalleryTarget): Promise<boolean>;
     DeleteCategory(target: IGalleryTarget): Promise<number>;
