@@ -2,13 +2,13 @@ import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCo
 import BotClient from "../../client/BotClient";
 import Command from "../../structures/Command";
 import Category from "../../enums/Category";
-import { NewPanelState, PanelStates, RenderPanel } from "../../builder/WelcomePanel";
+import { RenderHub } from "../../builder/SetupPanel";
 
-export default class Welcome extends Command {
+export default class Setup extends Command {
     constructor(client: BotClient) {
         super(client, {
-            name: "welcome",
-            description: "Richtet die Willkommensnachricht und die Willkommenskarte ein",
+            name: "setup",
+            description: "Richtet alle Bereiche des Bots an einer Stelle ein",
             category: Category.Admin,
             cooldown: 5,
             developerOnly: false,
@@ -25,12 +25,8 @@ export default class Welcome extends Command {
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-        const config = await this.client.welcomeService.Get(interaction.guildId);
-        const state = NewPanelState(interaction.guildId, config);
-        const view = await RenderPanel(this.client, state);
+        const view = await RenderHub(this.client, interaction.guildId);
 
-        const message = await interaction.editReply({ ...view, flags: MessageFlags.IsComponentsV2 });
-
-        PanelStates.set(message.id, state);
+        await interaction.editReply({ ...view, flags: MessageFlags.IsComponentsV2 });
     }
 }

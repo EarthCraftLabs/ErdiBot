@@ -10,6 +10,7 @@ import {
     MessageActionRowComponentBuilder,
     MessageFlags,
     resolveColor,
+    RoleSelectMenuBuilder,
     SectionBuilder,
     SeparatorBuilder,
     SeparatorSpacingSize,
@@ -24,6 +25,7 @@ import {
     IListOptions,
     IProgressOptions,
     IChannelSelectOptions,
+    IRoleSelectOptions,
     ISelectMenuOptions,
     ISeparatorOptions,
     SectionAccessory,
@@ -212,6 +214,23 @@ export default class ComponentV2Builder {
         if (options.channelTypes?.length) menu.addChannelTypes(...options.channelTypes);
         if (options.placeholder) menu.setPlaceholder(options.placeholder);
         if (options.defaultChannel) menu.setDefaultChannels(options.defaultChannel);
+        if (options.disabled) menu.setDisabled(true);
+
+        this.container.addActionRowComponents(
+            new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)
+        );
+
+        return this;
+    }
+
+    public roleSelect(options: IRoleSelectOptions): this {
+        this.spend(2);
+
+        const menu = new RoleSelectMenuBuilder().setCustomId(options.customId);
+
+        if (options.placeholder) menu.setPlaceholder(options.placeholder);
+        if (options.defaultRole) menu.setDefaultRoles(options.defaultRole);
+        if (options.minValues !== undefined) menu.setMinValues(options.minValues);
         if (options.disabled) menu.setDisabled(true);
 
         this.container.addActionRowComponents(

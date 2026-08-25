@@ -12,6 +12,7 @@ import ConfigService from "../services/ConfigService";
 import DiscordService from "../services/DiscordService";
 import DevLogsService from "../services/DevLogsService";
 import WelcomeService from "../services/WelcomeService";
+import ReactionRolesService from "../services/ReactionRolesService";
 import Server from "../Server";
 
 export default class BotClient extends Client implements IBotClient {
@@ -29,6 +30,7 @@ export default class BotClient extends Client implements IBotClient {
     discordService: DiscordService;
     devLogsService: DevLogsService;
     welcomeService: WelcomeService;
+    reactionRolesService: ReactionRolesService;
     server: Server;
 
     constructor() {
@@ -64,6 +66,7 @@ export default class BotClient extends Client implements IBotClient {
         this.discordService = new DiscordService(this);
         this.devLogsService = new DevLogsService(this);
         this.welcomeService = new WelcomeService(this);
+        this.reactionRolesService = new ReactionRolesService(this);
         this.server = new Server(this);
     }
 

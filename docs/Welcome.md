@@ -10,7 +10,7 @@ Zugriff über den Client: `this.client.welcomeService`.
 
 | Datei | Aufgabe |
 |---|---|
-| `src/commands/admin/Welcome.ts` | `/welcome` — öffnet das Setup |
+| `src/builder/SetupPanel.ts` | Meldet das Modul beim `/setup`-Hub an ([Setup](Setup.md)) |
 | `src/services/WelcomeService.ts` | Konfiguration laden/speichern, Schriften registrieren, Karte rendern |
 | `src/builder/WelcomePanel.ts` | Zeichnet das Setup-Panel, hält dessen Zustand |
 | `src/builder/WelcomeMessage.ts` | Baut die fertige Nachricht — für Testlauf **und** echten Beitritt |
@@ -38,10 +38,10 @@ Der Modus entscheidet auch, ob das Panel überhaupt eine Vorschau rendert: bei `
 ## Das Setup
 
 ```
-/welcome
+/setup  →  👋 Willkommen
 ```
 
-`Administrator` vorausgesetzt, die Antwort ist ephemeral. Das Panel arbeitet auf einer **Arbeitskopie**: alles, was du änderst, landet erst mit **💾 Speichern** in der Datenbank. **↩️ Verwerfen** holt den gespeicherten Stand zurück, **🗑️ Zurücksetzen** löscht die Zeile und stellt die Standardkarte her.
+`Administrator` vorausgesetzt, die Antwort ist ephemeral. Einen eigenen `/welcome`-Command gibt es nicht mehr — der Bereich hängt im [Setup-Hub](Setup.md), und **⬅️ Setup** führt aus der Startansicht dorthin zurück. Das Panel arbeitet auf einer **Arbeitskopie**: alles, was du änderst, landet erst mit **💾 Speichern** in der Datenbank. **↩️ Verwerfen** holt den gespeicherten Stand zurück, **🗑️ Zurücksetzen** löscht die Zeile und stellt die Standardkarte her.
 
 Solange etwas offen ist, steht oben ein Hinweis — der Speichern-Knopf ist sonst ausgegraut.
 

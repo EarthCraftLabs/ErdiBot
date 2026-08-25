@@ -1,0 +1,19 @@
+[
+    {
+        "pagination": false,
+        "modules": [
+            {
+                "name": "Willkommen",
+                "description": "Begrüssungsnachricht, Willkommenskarte und Kanal",
+                "value": "welcome",
+                "emoji": "👋"
+            },
+            {
+                "name": "Reaktionsrollen",
+                "description": "Rollen, die sich Mitglieder selbst geben können",
+                "value": "reactionroles",
+                "emoji": "🎭"
+            }
+        ]
+    }
+]

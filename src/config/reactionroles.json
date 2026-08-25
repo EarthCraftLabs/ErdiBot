@@ -1,0 +1,145 @@
+[
+    {
+        "pagination": false,
+        "styles": [
+            {
+                "name": "Buttons",
+                "description": "Ein Knopf pro Rolle, bis zu 25 Stück",
+                "value": "buttons",
+                "emoji": "🔘"
+            },
+            {
+                "name": "Auswahlmenü",
+                "description": "Ein Menü mit allen Rollen — spart Platz",
+                "value": "select",
+                "emoji": "📋"
+            }
+        ],
+        "modes": [
+            {
+                "name": "Mehrfach",
+                "description": "Beliebig viele Rollen, erneuter Klick gibt sie ab",
+                "value": "toggle",
+                "emoji": "🔁"
+            },
+            {
+                "name": "Nur eine",
+                "description": "Nur eine Rolle gleichzeitig, die alte wird ersetzt",
+                "value": "unique",
+                "emoji": "☝️"
+            },
+            {
+                "name": "Nur vergeben",
+                "description": "Einmal geholt und behalten — z. B. für Verify",
+                "value": "verify",
+                "emoji": "🔒"
+            }
+        ],
+        "tones": [
+            {
+                "name": "Blau",
+                "description": "Hervorgehobener Knopf",
+                "value": "primary",
+                "emoji": "🔵"
+            },
+            {
+                "name": "Grau",
+                "description": "Standard-Knopf",
+                "value": "secondary",
+                "emoji": "⚪"
+            },
+            {
+                "name": "Grün",
+                "description": "Positiv hervorgehoben",
+                "value": "success",
+                "emoji": "🟢"
+            },
+            {
+                "name": "Rot",
+                "description": "Warnend hervorgehoben",
+                "value": "danger",
+                "emoji": "🔴"
+            }
+        ],
+        "colors": [
+            {
+                "name": "Keine Farbe",
+                "description": "Container ohne farbigen Balken",
+                "value": "none",
+                "emoji": "🚫"
+            },
+            {
+                "name": "Weiss",
+                "description": "#FFFFFF",
+                "value": "#FFFFFF",
+                "emoji": "⚪"
+            },
+            {
+                "name": "Schwarz",
+                "description": "#000000",
+                "value": "#000000",
+                "emoji": "⚫"
+            },
+            {
+                "name": "Discord Blurple",
+                "description": "#5865F2",
+                "value": "#5865F2",
+                "emoji": "🔵"
+            },
+            {
+                "name": "Rot",
+                "description": "#ED4245",
+                "value": "#ED4245",
+                "emoji": "🔴"
+            },
+            {
+                "name": "Grün",
+                "description": "#57F287",
+                "value": "#57F287",
+                "emoji": "🟢"
+            },
+            {
+                "name": "Gelb",
+                "description": "#FEE75C",
+                "value": "#FEE75C",
+                "emoji": "🟡"
+            },
+            {
+                "name": "Pink",
+                "description": "#EB459E",
+                "value": "#EB459E",
+                "emoji": "🩷"
+            },
+            {
+                "name": "Orange",
+                "description": "#F0842A",
+                "value": "#F0842A",
+                "emoji": "🟠"
+            },
+            {
+                "name": "Violett",
+                "description": "#B57BFF",
+                "value": "#B57BFF",
+                "emoji": "🟣"
+            },
+            {
+                "name": "Türkis",
+                "description": "#1ABC9C",
+                "value": "#1ABC9C",
+                "emoji": "🩵"
+            },
+            {
+                "name": "Anthrazit",
+                "description": "#2B2D31",
+                "value": "#2B2D31",
+                "emoji": "🖤"
+            },
+            {
+                "name": "Gold",
+                "description": "#E5C07B",
+                "value": "#E5C07B",
+                "emoji": "🏅"
+            }
+        ]
+    }
+]

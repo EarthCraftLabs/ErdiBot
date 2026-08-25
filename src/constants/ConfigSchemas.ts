@@ -28,8 +28,12 @@ const WELCOME_FIELDS = [
     "placeholders",
 ] as const;
 
+const REACTION_ROLE_FIELDS = ["styles", "modes", "tones", "colors"] as const;
+
 export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
+    setup: { modules: OPTIONS },
     welcome: Object.fromEntries(WELCOME_FIELDS.map((field) => [field, OPTIONS])),
+    reactionroles: Object.fromEntries(REACTION_ROLE_FIELDS.map((field) => [field, OPTIONS])),
 };
 
 export function ValidateField(value: unknown, schema: IFieldSchema, path: string, errors: string[]): void {

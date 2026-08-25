@@ -59,6 +59,14 @@ export interface IChannelSelectOptions {
     disabled?: boolean;
 }
 
+export interface IRoleSelectOptions {
+    customId: string;
+    placeholder?: string;
+    defaultRole?: string | null;
+    minValues?: number;
+    disabled?: boolean;
+}
+
 export interface IListOptions {
     ordered?: boolean;
     bullet?: string;
