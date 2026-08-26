@@ -11,3 +11,5 @@ atlas-credentials.env
 !/src/images/default
 !/src/images/privacy
 .vscode
+# Geheimnisse - Vorlage ist .env.example
+.env

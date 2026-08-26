@@ -9,7 +9,7 @@ Zugriff überall über den Client: `this.client.database` (in Commands und Event
 ## Ablauf beim Start
 
 1. `BotClient.Init()` ruft `database.Connect()` auf.
-2. `Connect()` baut den Pool aus `DEV_DATABASE` (im `--dev` Modus) oder `DATABASE` in der `config.json` und pingt einmal — falsche Zugangsdaten fallen sofort auf, nicht erst beim ersten Query.
+2. `Connect()` baut den Pool aus `DEV_DATABASE` (im `--dev` Modus) oder `DATABASE` in der `config.json` — das Passwort kommt aus der `.env`, siehe [Environment.md](Environment.md) — und pingt einmal — falsche Zugangsdaten fallen sofort auf, nicht erst beim ersten Query.
 3. `LoadRepositories()` lädt **jede Datei** in `src/database/models` und baut daraus ein `Repository`.
 4. `SyncSchema()` gleicht die Datenbank mit genau diesen Definitionen ab.
 5. Beim Shutdown (`logger.beforeExit`) läuft `database.Disconnect()`.

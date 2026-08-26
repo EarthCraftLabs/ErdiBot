@@ -11,7 +11,7 @@ Zugriff über den Client: `this.client.server`.
 ## Ablauf beim Start
 
 1. `BotClient.Init()` ruft `server.Start()` auf — unabhängig von der Datenbank.
-2. `Start()` prüft `SERVER_JWT_SECRET`. Fehlt es oder ist es zu kurz, startet der Server gar nicht erst.
+2. `Start()` prüft `SERVER_JWT_SECRET` (aus der `.env`, siehe [Environment.md](Environment.md)). Fehlt es oder ist es zu kurz, startet der Server gar nicht erst.
 3. `@fastify/rate-limit` wird mit dem globalen Limit aus der `config.json` registriert.
 4. `RouteManager.Load()` lädt **jede Datei** in `src/routes`, `Apply()` hängt sie in Fastify.
 5. Beim Shutdown läuft `server.Stop()`.
@@ -21,10 +21,15 @@ Zugriff über den Client: `this.client.server`.
 ```json
 "SERVER_PORT": 3000,
 "SERVER_PUBLIC_URL": "https://bot.ascension-dach.org",
-"SERVER_JWT_SECRET": "...",
 "SERVER_JWT_EXPIRES_IN": "30d",
 "SERVER_RATE_LIMIT_MAX": 100,
 "SERVER_RATE_LIMIT_WINDOW": "1 minute"
+```
+
+### .env
+
+```bash
+SERVER_JWT_SECRET="..."
 ```
 
 ---

@@ -4,6 +4,7 @@ import Command from "../structures/Command";
 import logger from "../utils/logger";
 import ConstructionHandler from "../handler/ContructionHandler";
 import { IConfig } from "../interfaces/config/IConfig";
+import LoadConfig from "../utils/config";
 import DatabaseConnection from "../database/DatabaseConnection";
 import Guardian from "../Guardian";
 import RunnableService from "../services/RunnableService";
@@ -51,7 +52,7 @@ export default class BotClient extends Client implements IBotClient {
             ], 
         });
 
-        this.config = require("../../config.json");
+        this.config = LoadConfig();
         this.constructionHandlers = new ConstructionHandler(this);
         this.commands = new Collection();
         this.cooldowns = new Collection();

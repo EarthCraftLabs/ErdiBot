@@ -4,7 +4,7 @@ Lädt die JSON-Dateien aus `src/config`, prüft sie gegen ein Schema und gibt si
 
 Zugriff über den Client: `this.client.configService`.
 
-Nicht zu verwechseln mit der `config.json` im Projekt-Root — dort stehen Token, Datenbank und Server-Einstellungen, und die liest `BotClient` direkt.
+Nicht zu verwechseln mit der `config.json` im Projekt-Root und der `.env` — dort stehen Token, Datenbank und Server-Einstellungen, siehe [Environment.md](Environment.md).
 
 > **`src/config` ist aktuell leer.** Der Service ist da, die Dateien kommen mit den Features, die sie brauchen. Vorlagen aus der JavaScript-Fassung liegen unter `Ascension/src/config`. Alle Beispiele hier sind entsprechend Beispiele, keine vorhandenen Dateien.
 
