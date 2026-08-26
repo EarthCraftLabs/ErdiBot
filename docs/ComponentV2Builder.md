@@ -216,6 +216,26 @@ Custom-Emojis: `emoji: { id: "123456789", name: "ascension", animated: false }`.
 
 Ein Select belegt eine eigene Reihe, du kannst also mehrere untereinander setzen.
 
+### Discord-Selects (Kanal, Rolle, Nutzer)
+
+Discord füllt diese Menüs selbst — du gibst keine Optionen vor, und der Server-Inhalt ist immer aktuell.
+
+```ts
+.channelSelect({
+    customId: "notifier:panel:channel",
+    channelTypes: [ChannelType.GuildText, ChannelType.GuildAnnouncement],  // optional
+    placeholder: "Kanal wählen...",
+    defaultChannel: "123456789",   // optional
+})
+
+.roleSelect({ customId: "notifier:panel:liverole", placeholder: "Live-Rolle wählen..." })
+.userSelect({ customId: "notifier:panel:discord", placeholder: "Konto verknüpfen..." })
+```
+
+Die Auswahl kommt als `interaction.values[0]` zurück — eine ID, kein Objekt.
+
+Eine vorausgewählte Option lässt sich in Discord **nicht noch einmal auswählen**. Wo derselbe Wert öfter gesetzt werden soll, `defaultChannel` und `defaultRole` deshalb weglassen und den aktuellen Stand stattdessen im Text darüber anzeigen — so machen es das Welcome- und das Notifier-Panel.
+
 ### Accent-Farbe
 
 Der farbige Balken links am Container.

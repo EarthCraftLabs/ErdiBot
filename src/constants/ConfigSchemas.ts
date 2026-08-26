@@ -30,6 +30,12 @@ const WELCOME_FIELDS = [
 
 export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
     welcome: Object.fromEntries(WELCOME_FIELDS.map((field) => [field, OPTIONS])),
+    notifier: {
+        // Kein API-Key, sondern die austauschbare Feed-Quelle für TikTok - siehe TikTokAdapter.
+        tiktok_bridge: { type: "string" },
+        styles: OPTIONS,
+        colors: OPTIONS,
+    },
 };
 
 export function ValidateField(value: unknown, schema: IFieldSchema, path: string, errors: string[]): void {

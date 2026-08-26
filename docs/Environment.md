@@ -33,7 +33,7 @@ Danach in der `.env` Token und Passwörter eintragen. `.env` steht in der `.giti
 | `DATABASE_PASSWORD` | nein | Passwort zur Produktiv-Datenbank |
 | `DEV_DATABASE_PASSWORD` | nein | Passwort zur Dev-Datenbank |
 | `SERVER_JWT_SECRET` | ja | Signiert die API-Tokens, mindestens 32 Zeichen |
-| `YOUTUBE_API_KEY` | nein | Notifier · YouTube Data API v3 |
+| `YOUTUBE_API_KEY` | nein | Notifier · YouTube Data API v3, siehe [Notifier.md](Notifier.md) |
 | `TWITCH_CLIENT_ID` | nein | Notifier · Twitch Application |
 | `TWITCH_CLIENT_SECRET` | nein | Notifier · Twitch Application |
 

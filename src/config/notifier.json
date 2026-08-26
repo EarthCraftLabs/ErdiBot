@@ -1,0 +1,82 @@
+[
+    {
+        "pagination": false,
+        "tiktok_bridge": "https://rsshub.app/tiktok/user/@{handle}",
+        "styles": [
+            {
+                "name": "Container",
+                "description": "ComponentV2-Karte mit Vorschaubild und Knöpfen",
+                "value": "container",
+                "emoji": "🧩"
+            },
+            {
+                "name": "Klartext",
+                "description": "Eine Zeile, Discord baut die Link-Vorschau selbst",
+                "value": "text",
+                "emoji": "💬"
+            }
+        ],
+        "colors": [
+            {
+                "name": "YouTube-Rot",
+                "description": "Akzentfarbe #FF0000",
+                "value": "#FF0000",
+                "emoji": "🔴"
+            },
+            {
+                "name": "Twitch-Lila",
+                "description": "Akzentfarbe #9146FF",
+                "value": "#9146FF",
+                "emoji": "🟣"
+            },
+            {
+                "name": "TikTok-Cyan",
+                "description": "Akzentfarbe #00F2EA",
+                "value": "#00F2EA",
+                "emoji": "🩵"
+            },
+            {
+                "name": "Discord-Blurple",
+                "description": "Akzentfarbe #5865F2",
+                "value": "#5865F2",
+                "emoji": "🔵"
+            },
+            {
+                "name": "Grün",
+                "description": "Akzentfarbe #57F287",
+                "value": "#57F287",
+                "emoji": "🟢"
+            },
+            {
+                "name": "Gelb",
+                "description": "Akzentfarbe #FEE75C",
+                "value": "#FEE75C",
+                "emoji": "🟡"
+            },
+            {
+                "name": "Pink",
+                "description": "Akzentfarbe #EB459E",
+                "value": "#EB459E",
+                "emoji": "🩷"
+            },
+            {
+                "name": "Orange",
+                "description": "Akzentfarbe #FF7A00",
+                "value": "#FF7A00",
+                "emoji": "🟠"
+            },
+            {
+                "name": "Weiß",
+                "description": "Akzentfarbe #FFFFFF",
+                "value": "#FFFFFF",
+                "emoji": "⚪"
+            },
+            {
+                "name": "Anthrazit",
+                "description": "Akzentfarbe #2B2D31",
+                "value": "#2B2D31",
+                "emoji": "⚫"
+            }
+        ]
+    }
+]
