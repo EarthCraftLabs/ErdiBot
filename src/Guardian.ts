@@ -101,15 +101,18 @@ export default class Guardian implements IGuardian {
             );
         }
 
-        const logChannel = await this.client.channels.fetch(errorLogChannelId).catch((fetchError) => {
+        // Über den LoggingService, nicht per fetch: ist der Fehler-Kanal ein archivierter
+        // Thread, muss er erst geweckt werden - sonst verschwinden genau die Meldungen
+        // still, die man am dringendsten sehen will.
+        const logChannel = await this.client.loggingService.Writable(errorLogChannelId).catch((fetchError) => {
             logger.guardian("error", `Fehler beim Abrufen des Log Channels: ${fetchError}`);
             return null;
         });
 
-        if (!logChannel?.isSendable()) {
+        if (!logChannel) {
             return logger.guardian(
                 "warn",
-                `Der Error Log Channel mit der ID ${errorLogChannelId} konnte nicht gefunden werden oder unterstützt keine Nachrichten`
+                `Der Error Log Channel mit der ID ${errorLogChannelId} ist nicht erreichbar oder der Bot darf dort nicht schreiben`
             );
         }
 

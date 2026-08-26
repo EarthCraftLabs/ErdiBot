@@ -3,7 +3,9 @@ node_modules
 dist
 config.json
 .claude
-logs
+# Nur das Log-Verzeichnis im Wurzelordner - sonst verschluckt das Muster
+# auch Quellcode-Ordner wie src/events/logs
+/logs
 atlas-credentials.env
 .tmp-preview
 # Galerie: Default- und Privacy-Bilder kommen mit, Guild-Uploads nicht

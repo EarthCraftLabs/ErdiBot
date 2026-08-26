@@ -4,6 +4,8 @@ Die Session-Logs des Bots direkt in Discord lesen, durchsuchen und herunterladen
 
 Zugriff über den Client: `this.client.devLogsService`.
 
+Nicht zu verwechseln mit dem **Logging** ([Logging.md](Logging.md)) — das protokolliert Server-Ereignisse in Discord-Kanäle. Hier geht es um die Logdateien des Bots.
+
 ---
 
 ## Die Bausteine
