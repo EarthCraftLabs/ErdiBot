@@ -2,7 +2,9 @@
 
 Die Einstellungen des Bots liegen in **zwei** Dateien im Projekt-Root. Die Trennung folgt einer einzigen Regel:
 
-> **`.env` = alles, was geheim ist. `config.json` = alles, was nur Infrastruktur beschreibt.**
+> **`.env` = Zugangsdaten zu fremden Diensten. `config.json` = alles, was der Bot selbst betreibt.**
+
+Das Datenbank-Passwort steht deshalb in der `config.json`, direkt bei Host, Port und User: Zugangsdaten, die zusammengehören, richtet man auch zusammen ein. Getrennt über zwei Dateien ist eine Fehlerquelle mehr, ohne Sicherheitsgewinn — beide Dateien stehen ohnehin in der `.gitignore`.
 
 Zusammengesetzt werden beide genau einmal, in `src/utils/config.ts`. Der Rest des Bots sieht nur noch ein fertiges `IConfig` über `this.client.config` und muss nicht wissen, woher ein Wert kam.
 
@@ -30,8 +32,6 @@ Danach in der `.env` Token und Passwörter eintragen. `.env` steht in der `.giti
 | `CLIENT_ID` | ja | Application-ID für den Produktivbetrieb |
 | `DEV_CLIENT_TOKEN` | ja | Bot-Token im `--dev` Modus |
 | `DEV_CLIENT_ID` | ja | Application-ID im `--dev` Modus |
-| `DATABASE_PASSWORD` | nein | Passwort zur Produktiv-Datenbank |
-| `DEV_DATABASE_PASSWORD` | nein | Passwort zur Dev-Datenbank |
 | `SERVER_JWT_SECRET` | ja | Signiert die API-Tokens, mindestens 32 Zeichen |
 | `YOUTUBE_API_KEY` | nein | Notifier · YouTube Data API v3, siehe [Notifier.md](Notifier.md) |
 | `TWITCH_CLIENT_ID` | nein | Notifier · Twitch Application |
@@ -42,15 +42,17 @@ Fehlt eine Pflichtvariable, startet der Bot **nicht** und nennt den Namen. Fehle
 ### Werte immer in Anführungszeichen
 
 ```bash
-DATABASE_PASSWORD="#Erdibot2026"     # ✅
-DATABASE_PASSWORD=#Erdibot2026       # ❌ wird zu einem leeren String
+SERVER_JWT_SECRET="ab#cd"     # ✅
+SERVER_JWT_SECRET=ab#cd       # ❌ wird zu "ab"
 ```
 
-Ein unmaskiertes `#` startet einen Kommentar. Ohne Anführungszeichen verschwindet der Rest der Zeile **still** — es gibt keine Fehlermeldung, nur eine fehlschlagende Anmeldung an der Datenbank. Deshalb: jeden Wert quoten, nicht nur die mit Sonderzeichen.
+Ein unmaskiertes `#` startet einen Kommentar. Ohne Anführungszeichen verschwindet der Rest der Zeile **still** — es gibt keine Fehlermeldung, nur ein Wert, der nicht funktioniert. Deshalb: jeden Wert quoten, nicht nur die mit Sonderzeichen.
+
+In der `config.json` stellt sich die Frage nicht, JSON kennt keine Kommentare.
 
 ### Echte Umgebungsvariablen gewinnen
 
-`process.loadEnvFile()` überschreibt nichts, was bereits in der Umgebung gesetzt ist. Ein `DATABASE_PASSWORD` aus Docker-Compose, systemd oder der Shell hat also immer Vorrang vor der Datei. Damit läuft derselbe Code lokal wie im Container, ohne dass eine `.env` ins Image muss.
+`process.loadEnvFile()` überschreibt nichts, was bereits in der Umgebung gesetzt ist. Ein `CLIENT_TOKEN` aus Docker-Compose, systemd oder der Shell hat also immer Vorrang vor der Datei. Damit läuft derselbe Code lokal wie im Container, ohne dass eine `.env` ins Image muss.
 
 Ein `dotenv`-Paket wird nicht gebraucht — `process.loadEnvFile()` ist seit Node 20.12 in der Standard-Bibliothek.
 
@@ -60,8 +62,8 @@ Ein `dotenv`-Paket wird nicht gebraucht — `process.loadEnvFile()` ist seit Nod
 
 ```json
 {
-    "DATABASE":     { "HOST": "localhost", "PORT": 3306, "USER": "erdibot", "NAME": "erdibot" },
-    "DEV_DATABASE": { "HOST": "localhost", "PORT": 3306, "USER": "erdibot", "NAME": "erdibot_dev" },
+    "DATABASE":     { "HOST": "localhost", "PORT": 3306, "USER": "erdibot", "PASSWORD": "…", "NAME": "erdibot" },
+    "DEV_DATABASE": { "HOST": "localhost", "PORT": 3306, "USER": "erdibot", "PASSWORD": "…", "NAME": "erdibot_dev" },
 
     "DEV_GUILD_ID": "1162553851187040326",
     "DEV_USER_IDs": ["1059621019947634739"],
@@ -76,7 +78,7 @@ Ein `dotenv`-Paket wird nicht gebraucht — `process.loadEnvFile()` ist seit Nod
 
 | Feld | Standard | Wofür |
 |---|---|---|
-| `DATABASE` / `DEV_DATABASE` | — | Host, Port, User und Name. Das Passwort steht in der `.env` |
+| `DATABASE` / `DEV_DATABASE` | — | Vollständige Zugangsdaten: Host, Port, User, Passwort, Name |
 | `DEV_GUILD_ID` | — | Server, auf dem Commands im `--dev` Modus sofort registriert werden |
 | `DEV_USER_IDs` | `[]` | Wer `developerOnly`-Commands ausführen darf |
 | `SERVER_PORT` | `3000` | Port des Fastify-Servers |
@@ -85,7 +87,7 @@ Ein `dotenv`-Paket wird nicht gebraucht — `process.loadEnvFile()` ist seit Nod
 | `SERVER_RATE_LIMIT_MAX` | `100` | Anfragen pro Fenster und IP |
 | `SERVER_RATE_LIMIT_WINDOW` | `1 minute` | Länge des Fensters |
 
-`PORT` darf fehlen und fällt dann auf `3306`. `HOST`, `USER` und `NAME` sind Pflicht — fehlt eines, startet der Bot nicht.
+`PORT` darf fehlen und fällt auf `3306`, `PASSWORD` darf fehlen und gilt dann als leer. `HOST`, `USER` und `NAME` sind Pflicht — fehlt eines, startet der Bot nicht.
 
 `config.json` steht ebenfalls in der `.gitignore`, obwohl nichts Geheimes mehr drin steht. Wer die Datei versionieren will, kann die Zeile entfernen; die Vorlage `config.example.json` kommt so oder so mit.
 
@@ -109,4 +111,4 @@ Die Pfade werden erst **beim Aufruf** aus `process.cwd()` aufgelöst, nicht beim
 npx tsx src/tests/Config.test.ts
 ```
 
-Prüft in einem Wegwerf-Verzeichnis, dass die beiden Quellen korrekt zusammenfinden — inklusive der Raute im Passwort — und dass acht Fehlerfälle (fehlende `.env`, fehlende `config.json`, kaputtes JSON, leere Werte, fehlende Sektionen) verständliche Meldungen erzeugen.
+Prüft in einem Wegwerf-Verzeichnis, dass die beiden Quellen korrekt zusammenfinden, und dass acht Fehlerfälle (fehlende `.env`, fehlende `config.json`, kaputtes JSON, leere Werte, fehlende Sektionen) verständliche Meldungen erzeugen.
