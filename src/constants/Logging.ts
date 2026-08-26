@@ -93,7 +93,7 @@ export const CATEGORIES: ILogCategory[] = [
         description: "Support-Tickets",
         emoji: "🎫",
         accent: "#E67E22",
-        events: "Noch nichts - der Kanal steht bereit, sobald es ein Ticket-System gibt",
+        events: "Tickets werden geöffnet und geschlossen, Nutzer für das System gesperrt",
     },
     {
         type: LogType.ERROR,

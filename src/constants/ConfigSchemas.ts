@@ -34,6 +34,9 @@ export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
         styles: OPTIONS,
         colors: OPTIONS,
     },
+    ticket: {
+        actions: OPTIONS,
+    },
 };
 
 export function ValidateField(value: unknown, schema: IFieldSchema, path: string, errors: string[]): void {

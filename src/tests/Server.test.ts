@@ -96,7 +96,7 @@ async function main(): Promise<void> {
     const api = `${base}${API_PREFIX}`;
 
     assert.equal(server.IsRunning, true, "nach dem Start muss IsRunning true sein");
-    assert.equal(server.Routes.Size, 7, `erwartet 7 Routen, registriert: ${server.Routes.Keys.join(", ")}`);
+    assert.equal(server.Routes.Size, 8, `erwartet 8 Routen, registriert: ${server.Routes.Keys.join(", ")}`);
 
     assert.deepEqual(
         server.Routes.Keys.sort(),
@@ -107,6 +107,7 @@ async function main(): Promise<void> {
             "GET /dcapi/guilds/:guildId/members/:userId",
             "GET /dcapi/health",
             "GET /images/*",
+            "GET /transcripts/:id",
             "PUT /dcapi/guilds/:guildId/members/:userId/roles/:roleId",
         ],
         "alles unter /dcapi ausser der Bilder-Route"

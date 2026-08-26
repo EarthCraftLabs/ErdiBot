@@ -1,0 +1,22 @@
+[
+    {
+        "pagination": false,
+        "actions": [
+            { "name": "Ticket beanspruchen", "value": "claim", "description": "Übernimm die Bearbeitung dieses Tickets", "emoji": "✅" },
+            { "name": "Ticket zurückgeben", "value": "unclaim", "description": "Gib das Ticket zurück in die Warteschlange", "emoji": "↩️" },
+            { "name": "Ticket verschieben", "value": "transfer", "description": "Verschiebe das Ticket in eine andere Kategorie", "emoji": "🔁" },
+            { "name": "Priorität setzen", "value": "priority", "description": "Ändere die Dringlichkeit, setzt auch den Forum-Tag", "emoji": "⚡" },
+            { "name": "Anonymer Modus", "value": "anonymous", "description": "Schreibe als Team-Alias statt unter deinem Namen", "emoji": "🛡️" },
+            { "name": "Medien-Tresor", "value": "media", "description": "Alle hochgeladenen Bilder als Galerie", "emoji": "🖼️" },
+            { "name": "Slowmode", "value": "slowmode", "description": "Nachrichtensperre gegen Spam setzen", "emoji": "⏱️" },
+            { "name": "Zusammenfassung", "value": "summary", "description": "Kurzüberblick über den Stand des Tickets", "emoji": "📖" },
+            { "name": "Team-Notiz", "value": "notes", "description": "Interne Notizen ansehen und anlegen", "emoji": "📝" },
+            { "name": "Benutzer hinzufügen", "value": "adduser", "description": "Hole eine weitere Person ins Ticket", "emoji": "➕" },
+            { "name": "Benutzer entfernen", "value": "removeuser", "description": "Entferne eine Person aus dem Ticket", "emoji": "➖" },
+            { "name": "Ticket einfrieren", "value": "freeze", "description": "Sperre den Ersteller temporär vom Schreiben", "emoji": "🥶" },
+            { "name": "Benutzer sperren", "value": "blacklist", "description": "Sperre die Person für das Ticket-System", "emoji": "🚫" },
+            { "name": "Termin vereinbaren", "value": "meeting", "description": "Plane ein Gespräch mit automatischer Erinnerung", "emoji": "📅" },
+            { "name": "Ticket schließen", "value": "close", "description": "Schließe das Ticket und sichere das Transcript", "emoji": "❌" }
+        ]
+    }
+]

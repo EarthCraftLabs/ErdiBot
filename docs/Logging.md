@@ -43,7 +43,7 @@ Ein Kanal-Auswahlmenü, das Text-Kanäle und Threads gleichzeitig anbietet, wird
 | 👤 | Profil-Logs | Nickname, Benutzername, Avatar, zugewiesene Rollen |
 | 🛡️ | Moderations-Logs | Bann, Entbannung, Kick, Timeout — mit Ausführendem und Grund |
 | 📋 | Audit-Logs | Server-Einstellungen, Emojis, Einladungen, Webhooks |
-| 🎫 | Ticket-Logs | Vorbereitet — es gibt noch kein Ticket-System, das hineinschreibt |
+| 🎫 | Ticket-Logs | Geöffnet, geschlossen, Nutzer gesperrt — siehe [Tickets.md](Tickets.md) |
 | ⚠️ | Fehler-Logs | Der Guardian meldet hier abgefangene Fehler |
 
 ---
