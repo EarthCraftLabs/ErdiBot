@@ -13,6 +13,7 @@ import ConfigService from "../services/ConfigService";
 import DiscordService from "../services/DiscordService";
 import DevLogsService from "../services/DevLogsService";
 import WelcomeService from "../services/WelcomeService";
+import NotifierService from "../services/NotifierService";
 import Server from "../Server";
 
 export default class BotClient extends Client implements IBotClient {
@@ -30,6 +31,7 @@ export default class BotClient extends Client implements IBotClient {
     discordService: DiscordService;
     devLogsService: DevLogsService;
     welcomeService: WelcomeService;
+    notifierService: NotifierService;
     server: Server;
 
     constructor() {
@@ -65,6 +67,7 @@ export default class BotClient extends Client implements IBotClient {
         this.discordService = new DiscordService(this);
         this.devLogsService = new DevLogsService(this);
         this.welcomeService = new WelcomeService(this);
+        this.notifierService = new NotifierService(this);
         this.server = new Server(this);
     }
 
@@ -90,6 +93,7 @@ export default class BotClient extends Client implements IBotClient {
                 await this.runnableService.Initialize();
                 await this.galleryService.Initialize();
                 await this.welcomeService.Initialize();
+                await this.notifierService.Initialize();
             })
             .catch((err) => logger.error("🗄️  MariaDB connection failed", err));
 

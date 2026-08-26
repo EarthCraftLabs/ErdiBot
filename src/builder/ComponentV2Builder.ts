@@ -10,12 +10,14 @@ import {
     MessageActionRowComponentBuilder,
     MessageFlags,
     resolveColor,
+    RoleSelectMenuBuilder,
     SectionBuilder,
     SeparatorBuilder,
     SeparatorSpacingSize,
     StringSelectMenuBuilder,
     TextDisplayBuilder,
     ThumbnailBuilder,
+    UserSelectMenuBuilder,
 } from "discord.js";
 import {
     ButtonOptions,
@@ -24,8 +26,10 @@ import {
     IListOptions,
     IProgressOptions,
     IChannelSelectOptions,
+    IRoleSelectOptions,
     ISelectMenuOptions,
     ISeparatorOptions,
+    IUserSelectOptions,
     SectionAccessory,
 } from "../interfaces/builder/IComponentV2Builder";
 
@@ -212,6 +216,38 @@ export default class ComponentV2Builder {
         if (options.channelTypes?.length) menu.addChannelTypes(...options.channelTypes);
         if (options.placeholder) menu.setPlaceholder(options.placeholder);
         if (options.defaultChannel) menu.setDefaultChannels(options.defaultChannel);
+        if (options.disabled) menu.setDisabled(true);
+
+        this.container.addActionRowComponents(
+            new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)
+        );
+
+        return this;
+    }
+
+    public roleSelect(options: IRoleSelectOptions): this {
+        this.spend(2);
+
+        const menu = new RoleSelectMenuBuilder().setCustomId(options.customId);
+
+        if (options.placeholder) menu.setPlaceholder(options.placeholder);
+        if (options.defaultRole) menu.setDefaultRoles(options.defaultRole);
+        if (options.disabled) menu.setDisabled(true);
+
+        this.container.addActionRowComponents(
+            new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)
+        );
+
+        return this;
+    }
+
+    public userSelect(options: IUserSelectOptions): this {
+        this.spend(2);
+
+        const menu = new UserSelectMenuBuilder().setCustomId(options.customId);
+
+        if (options.placeholder) menu.setPlaceholder(options.placeholder);
+        if (options.defaultUser) menu.setDefaultUsers(options.defaultUser);
         if (options.disabled) menu.setDisabled(true);
 
         this.container.addActionRowComponents(

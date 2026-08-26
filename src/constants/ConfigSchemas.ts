@@ -30,6 +30,10 @@ const WELCOME_FIELDS = [
 
 export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
     welcome: Object.fromEntries(WELCOME_FIELDS.map((field) => [field, OPTIONS])),
+    notifier: {
+        styles: OPTIONS,
+        colors: OPTIONS,
+    },
 };
 
 export function ValidateField(value: unknown, schema: IFieldSchema, path: string, errors: string[]): void {
