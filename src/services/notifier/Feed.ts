@@ -1,5 +1,5 @@
-// Ein vollwertiger XML-Parser wäre für zwei feste Feed-Formate eine Dependency zu viel.
-// YouTube liefert Atom (<entry>), RSS-Bridges liefern RSS (<item>) - beides ist flach genug.
+// YouTube liefert Atom. Ein vollwertiger XML-Parser wäre für ein einziges, festes
+// Feed-Format eine Dependency zu viel - der Feed ist flach genug.
 
 const ENTITIES: Record<string, string> = {
     "&amp;": "&",
@@ -48,11 +48,11 @@ export function Attribute(block: string, tag: string, attribute: string): string
     return match ? Decode(match[1]) : null;
 }
 
-// Nur der erste Eintrag zählt: beide Feeds liefern die neueste Veröffentlichung zuerst.
+// Nur der erste Eintrag zählt: der Feed liefert die neueste Veröffentlichung zuerst.
 export function FirstEntry(xml: string): string | null {
-    const match = /<(entry|item)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/i.exec(xml);
+    const match = /<entry(?:\s[^>]*)?>([\s\S]*?)<\/entry>/i.exec(xml);
 
-    return match ? match[2] : null;
+    return match ? match[1] : null;
 }
 
 function Stamp(value: string | null): Date | null {
@@ -63,20 +63,6 @@ function Stamp(value: string | null): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// Sucht ein Vorschaubild an den drei Stellen, an denen es üblicherweise steht.
-function Thumbnail(block: string): string | null {
-    const media = Attribute(block, "media:thumbnail", "url") ?? Attribute(block, "media:content", "url");
-    if (media) return media;
-
-    const enclosure = Attribute(block, "enclosure", "url");
-    if (enclosure) return enclosure;
-
-    const description = Tag(block, "description") ?? Tag(block, "content:encoded") ?? "";
-    const image = /<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/i.exec(description);
-
-    return image ? Decode(image[1]) : null;
-}
-
 export function ParseFeed(xml: string): IFeedItem | null {
     const block = FirstEntry(xml);
     if (!block) return null;
@@ -84,8 +70,8 @@ export function ParseFeed(xml: string): IFeedItem | null {
     const link = Attribute(block, "link", "href") ?? Tag(block, "link");
     const title = Tag(block, "title");
 
-    // yt:videoId ist stabil, <id> und <guid> sind es meistens - der Link ist die letzte Rettung.
-    const id = Tag(block, "yt:videoId") ?? Tag(block, "guid") ?? Tag(block, "id") ?? link;
+    // yt:videoId ist stabil, <id> trägt sonst das Präfix yt:video: mit.
+    const id = Tag(block, "yt:videoId") ?? Tag(block, "id") ?? link;
 
     if (!id || !link) return null;
 
@@ -93,7 +79,7 @@ export function ParseFeed(xml: string): IFeedItem | null {
         id,
         title: title || "Ohne Titel",
         link,
-        thumbnail: Thumbnail(block),
-        published: Stamp(Tag(block, "published") ?? Tag(block, "pubDate") ?? Tag(block, "updated")),
+        thumbnail: Attribute(block, "media:thumbnail", "url"),
+        published: Stamp(Tag(block, "published") ?? Tag(block, "updated")),
     };
 }

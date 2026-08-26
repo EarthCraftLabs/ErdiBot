@@ -38,7 +38,7 @@ assert.equal(ClampNumber(Number.NaN, 5, 100), 5);
 
 assert.equal(Key({ platform: "twitch", identifier: "mecrytv" }), "twitch:mecrytv");
 assert.equal(StyleLabel("container"), "Container");
-assert.equal(SUPPORTS_LIVE.tiktok, false, "TikTok kennt keinen Live-Zustand");
+assert.equal(SUPPORTS_LIVE.youtube && SUPPORTS_LIVE.twitch, true, "beide Plattformen kennen einen Live-Zustand");
 
 // ── Ruhezeit ───────────────────────────────────────────────────────────────
 // Der interessante Fall ist das Fenster über Mitternacht.
@@ -104,8 +104,11 @@ assert.equal(repaired.createdAt.getUTCFullYear(), 2026);
 assert.equal(repaired.guildId, GUILD);
 
 assert.equal(Normalize(null, GUILD).platform, "youtube", "gar nichts ergibt trotzdem einen Eintrag");
-assert.equal(Normalize({ platform: "tiktok", liveRoleId: "123" }, GUILD).liveRoleId, null, "TikTok kann keine Live-Rolle");
 assert.equal(Normalize({ platform: "twitch", liveRoleId: "123" }, GUILD).liveRoleId, "123");
+
+// Eine abgeschaffte Plattform aus einer alten Zeile darf den Eintrag nicht sprengen.
+assert.equal(Normalize({ platform: "tiktok" }, GUILD).platform, "youtube", "unbekannte Plattform fällt zurück");
+assert.equal(Normalize({ platform: "" }, GUILD).platform, "youtube", "auch ein leerer Wert");
 
 // ── Melden oder nicht ──────────────────────────────────────────────────────
 
@@ -177,24 +180,18 @@ assert.equal(atom.link, "https://www.youtube.com/watch?v=ABC123");
 assert.equal(atom.thumbnail, "https://i.ytimg.com/vi/ABC123/hq.jpg");
 assert.equal(atom.published?.getUTCHours(), 10);
 
-const RSS = `<rss><channel><title>TikTok</title>
-<item>
-  <title><![CDATA[Mein Clip]]></title>
-  <link>https://www.tiktok.com/@x/video/999</link>
-  <guid>999</guid>
-  <pubDate>Tue, 26 Aug 2026 09:00:00 GMT</pubDate>
-  <description>&lt;img src="https://cdn/thumb.jpg"&gt;</description>
-</item></channel></rss>`;
+// Ohne yt:videoId trägt <id> das Präfix mit - der Adapter schneidet es ab.
+const minimal = ParseFeed(`<feed><entry><id>yt:video:XYZ</id><title><![CDATA[Roh & Wild]]></title>
+<link rel="alternate" href="https://www.youtube.com/watch?v=XYZ"/></entry></feed>`);
 
-const rss = ParseFeed(RSS);
-
-assert.ok(rss, "der RSS-Feed muss gelesen werden");
-assert.equal(rss.id, "999", "guid ist die ID");
-assert.equal(rss.title, "Mein Clip");
-assert.equal(rss.thumbnail, "https://cdn/thumb.jpg", "das Bild steckt in der Beschreibung");
+assert.ok(minimal, "auch ohne yt:videoId muss der Eintrag lesbar sein");
+assert.equal(minimal.id, "yt:video:XYZ");
+assert.equal(minimal.title, "Roh & Wild", "CDATA wird ausgepackt");
+assert.equal(minimal.thumbnail, null, "ohne media:thumbnail bleibt es leer");
 
 assert.equal(ParseFeed("<feed></feed>"), null, "ein leerer Feed ergibt nichts");
 assert.equal(ParseFeed("kein xml"), null);
+assert.equal(ParseFeed("<rss><channel><item><title>RSS</title><link>https://x</link></item></channel></rss>"), null, "RSS wird nicht mehr gelesen - YouTube liefert Atom");
 assert.equal(ParseFeed("<feed><entry><title>Ohne Link</title></entry></feed>"), null, "ohne Link ist der Eintrag wertlos");
 
 // ── Platzhalter ────────────────────────────────────────────────────────────
@@ -281,17 +278,15 @@ async function main(): Promise<void> {
     assert.ok(configService.Has("notifier"), "src/config/notifier.json muss geladen werden");
     assert.equal(configService.Options("notifier", "styles").length, 2);
     assert.ok(configService.Options("notifier", "colors").length > 0);
-    assert.ok(configService.Value("notifier", "tiktok_bridge", "").includes("{handle}"), "die Bridge braucht {handle}");
 
     const client = { config: { YOUTUBE_API_KEY: "", TWITCH_CLIENT_ID: "", TWITCH_CLIENT_SECRET: "" }, configService } as unknown as BotClient;
     const notifierService = new NotifierService(client);
 
     (client as { notifierService: NotifierService }).notifierService = notifierService;
 
-    assert.equal(notifierService.Adapters.length, 3);
+    assert.equal(notifierService.Adapters.length, 2);
     assert.equal(notifierService.Adapter("youtube").Ready, true, "YouTube läuft auch ohne Key über RSS");
     assert.equal(notifierService.Adapter("twitch").Ready, false, "Twitch braucht zwingend Client-ID und Secret");
-    assert.equal(notifierService.Adapter("tiktok").Ready, true, "TikTok braucht nur die Bridge aus der Config");
 
     const entries = [subscription, { ...Sub({ platform: "youtube", name: "EarthCraft", identifier: "UC123" }), lastError: "kaputt" }];
     const base = NewPanelState(GUILD, entries);
@@ -316,13 +311,6 @@ async function main(): Promise<void> {
     assert.ok(Render({ view: "options", index: 0 }).includes("Ruhezeit"));
     assert.ok(Render({ view: "status" }).includes("kaputt"), "der letzte Fehler steht im Status");
 
-    // TikTok kennt keine Live-Rolle - das Panel darf sie gar nicht erst anbieten.
-    const tiktok = [Sub({ platform: "tiktok", name: "Clips", identifier: "clips" })];
-    const tikState = { ...NewPanelState(GUILD, tiktok), view: "roles" as const, index: 0 };
-
-    assert.ok(!JSON.stringify(RenderPanel(client, tikState).components[0]).includes("liverole"), "TikTok darf keine Live-Rolle anbieten");
-    rendered++;
-
     // Ein Entwurf hat Vorrang vor dem gespeicherten Eintrag.
     const draft = { ...base, view: "entry" as const, index: 0, draft: Sub({ name: "Entwurf" }), dirty: true };
 
@@ -342,7 +330,7 @@ async function main(): Promise<void> {
     assert.equal(PanelStates.max, 50);
 
     console.log(
-        `OK - Ruhezeit über Mitternacht, ${PLACEHOLDERS.length} Platzhalter, Feed-Parser für Atom und RSS, ` +
+        `OK - Ruhezeit über Mitternacht, ${PLACEHOLDERS.length} Platzhalter, Atom-Parser, ` +
             `7 Melde-Regeln, kaputte Datenbankzeilen und ${rendered} Panel-Zustände verhalten sich korrekt`
     );
 }

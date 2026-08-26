@@ -228,7 +228,7 @@ function Roles(builder: ComponentV2Builder, entry: INotifierSubscription): void 
     builder.text(
         `🔔 **Ping-Rolle:** ${entry.mentionRoleId ? `<@&${entry.mentionRoleId}>` : "_keine_"}\n` +
             `   Wird bei jeder Meldung erwähnt, über den Platzhalter \`{mention}\`.\n\n` +
-            `🎭 **Live-Rolle:** ${live ? (entry.liveRoleId ? `<@&${entry.liveRoleId}>` : "_keine_") : "_bei TikTok nicht möglich_"}\n` +
+            `🎭 **Live-Rolle:** ${live ? (entry.liveRoleId ? `<@&${entry.liveRoleId}>` : "_keine_") : "_hier nicht möglich_"}\n` +
             `   Wird beim Stream-Start vergeben und beim Stream-Ende wieder entzogen.\n\n` +
             `👤 **Discord-Konto:** ${entry.discordUserId ? `<@${entry.discordUserId}>` : "_nicht verknüpft_"}\n` +
             `   Bekommt die Live-Rolle und steht als \`{discord}\` im Text.`
@@ -338,7 +338,7 @@ export function RenderPanel(client: BotClient, state: INotifierState): INotifier
     }
 
     const titles: Record<string, [string, string]> = {
-        home: ["🔔 | Notifier", "YouTube, Twitch und TikTok in deinen Discord"],
+        home: ["🔔 | Notifier", "YouTube und Twitch in deinen Discord"],
         add: ["➕ | Kanal hinzufügen", "Plattform wählen"],
         entry: ["📡 | Kanal", entry?.name ?? ""],
         message: ["💬 | Nachricht", entry?.name ?? ""],

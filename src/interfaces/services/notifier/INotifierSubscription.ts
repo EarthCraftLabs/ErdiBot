@@ -1,4 +1,4 @@
-export type Platform = "youtube" | "twitch" | "tiktok";
+export type Platform = "youtube" | "twitch";
 
 // Wie die Benachrichtigung aussieht. Beides gleichzeitig geht nicht: eine Nachricht mit dem
 // IsComponentsV2-Flag darf laut Discord kein "content" tragen.

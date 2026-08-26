@@ -7,10 +7,10 @@ export default class NotifierPoll extends Runnable {
     constructor(client: BotClient) {
         super(client, {
             name: "NotifierPoll",
-            description: "Prüft YouTube, Twitch und TikTok auf neue Streams und Videos",
+            description: "Prüft YouTube und Twitch auf neue Streams und Videos",
             type: TaskTypes.INTERVAL,
             // Der Takt ist die Untergrenze, nicht die Frequenz: jede Plattform hat ihr eigenes
-            // Intervall (Twitch 1 Min., YouTube 5 Min., TikTok 10 Min.) und wird nur geprüft,
+            // Intervall (Twitch 1 Min., YouTube 5 Min.) und wird nur geprüft,
             // wenn ihres abgelaufen ist. Ein kürzerer Takt hier erzeugt keine einzige Anfrage mehr.
             expression: "1m",
         });

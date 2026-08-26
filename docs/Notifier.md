@@ -1,6 +1,6 @@
 # Notifier
 
-Meldet neue Streams und Videos von **YouTube**, **Twitch** und **TikTok** in einen Discord-Kanal. Eingerichtet wird alles über `/notifier` — ein ComponentV2-Panel, ohne eine einzige Zeile JSON von Hand.
+Meldet neue Streams und Videos von **YouTube** und **Twitch** in einen Discord-Kanal. Eingerichtet wird alles über `/notifier` — ein ComponentV2-Panel, ohne eine einzige Zeile JSON von Hand.
 
 Zugriff über den Client: `this.client.notifierService`.
 
@@ -10,7 +10,7 @@ Zugriff über den Client: `this.client.notifierService`.
 
 | | |
 |---|---|
-| **Mehrere Kanäle** | Bis zu 25 pro Server, beliebig über die drei Plattformen verteilt |
+| **Mehrere Kanäle** | Bis zu 25 pro Server, beliebig über beide Plattformen verteilt |
 | **Eigene Texte** | Getrennt für Live, Video und „Stream vorbei", mit 11 Platzhaltern |
 | **Live-Rolle** | Wird beim Stream-Start vergeben und beim Stream-Ende **wieder entzogen** |
 | **Ping-Rolle** | Separate Rolle, die erwähnt wird — nie `@everyone`, auch wenn es jemand ins Template schreibt |
@@ -44,7 +44,6 @@ Alles Weitere — Texte, Rollen, Cooldown — geht über die Knöpfe **Nachricht
 |---|---|
 | YouTube | `UCX6OQ3DkcsbYNE6H8uQQuVA`, `youtube.com/channel/UC…`, `@handle`¹ |
 | Twitch | `mecrytv`, `twitch.tv/mecrytv` |
-| TikTok | `@handle`, `tiktok.com/@handle` |
 
 ¹ Ein `@handle` bei YouTube braucht den API-Key. Eine Kanal-ID funktioniert auch ohne.
 
@@ -55,7 +54,7 @@ Alles Weitere — Texte, Rollen, Cooldown — geht über die Knöpfe **Nachricht
 | Platzhalter | Wird ersetzt durch |
 |---|---|
 | `{name}` | Anzeigename des Kanals |
-| `{platform}` | YouTube, Twitch oder TikTok |
+| `{platform}` | YouTube oder Twitch |
 | `{title}` | Titel des Streams oder Videos |
 | `{link}` | Direktlink zum Stream oder Video |
 | `{url}` | Link zum Kanal selbst |
@@ -98,7 +97,6 @@ Ein Runnable (`NotifierPoll`) läuft **jede Minute** und fragt nur die Kanäle a
 |---|---|---|---|
 | Twitch | 60 s | Helix `/streams` | 1 Anfrage für **alle** Kanäle des Bots |
 | YouTube | 5 min | RSS-Feed | 0 — kein Key, kein Quota |
-| TikTok | 10 min | Feed-Bridge | 0 |
 
 ### YouTube: RSS zum Finden, API zum Anreichern
 
@@ -114,15 +112,17 @@ Ohne `YOUTUBE_API_KEY` läuft die Erkennung trotzdem — es fehlen dann nur das 
 
 Bei einem `429` wartet der Adapter bis zum Zeitpunkt aus dem `Ratelimit-Reset`-Header und fragt bis dahin gar nicht erst an — jeder Versuch währenddessen würde die Sperre nur verlängern.
 
-### TikTok: austauschbare Bridge
+### TikTok gibt es nicht
 
-TikTok hat **keine öffentliche API** für „neues Video eines fremden Creators". Die offizielle Display API verlangt OAuth des Creators selbst plus App-Review durch TikTok. Deshalb läuft die Erkennung über eine Feed-Bridge, deren URL in `src/config/notifier.json` steht:
+Geprüft und verworfen. TikTok hat **keine** Schnittstelle, über die sich die Uploads eines fremden Creators beobachten lassen:
 
-```json
-"tiktok_bridge": "https://rsshub.app/tiktok/user/@{handle}"
-```
+- Die **Display API** zeigt nur die Videos eines Creators, der die App vorher per OAuth autorisiert hat — und die App muss dafür ein App-Review durchlaufen, das Tage bis Wochen dauert.
+- Die **Content Posting API** geht in die Gegenrichtung: sie *veröffentlicht* Videos auf TikTok im Namen eines eingeloggten Creators. Sie liest nichts.
 
-`{handle}` wird ersetzt. Jede Quelle, die RSS oder Atom liefert, funktioniert — auch eine selbst gehostete RSSHub-Instanz, was für den Dauerbetrieb die zuverlässigere Wahl ist.
+Bliebe eine RSS-Bridge eines Drittanbieters. Die funktioniert, hängt aber an fremder Infrastruktur, die gedrosselt wird, ausfällt oder verschwindet — für einen Notifier, der zuverlässig sein soll, die falsche Grundlage. TikTok ist deshalb bewusst nicht dabei.
+
+Die Plattform-Liste ist eine Konstante (`PLATFORMS` in `src/constants/Notifier.ts`) und der Adapter ein Interface mit vier Methoden — sollte TikTok je eine echte API bekommen, ist es eine Datei plus ein Listeneintrag.
+
 
 ---
 
@@ -154,8 +154,6 @@ Alle Keys stehen in der `.env`, siehe [Environment.md](Environment.md). Fehlt ei
 | `TWITCH_CLIENT_ID` | Twitch komplett | ja, für Twitch |
 | `TWITCH_CLIENT_SECRET` | Twitch komplett | ja, für Twitch |
 
-TikTok braucht keinen Key, nur die Bridge-URL aus der Config.
-
 ---
 
 ## Sicherheit
@@ -175,8 +173,7 @@ TikTok braucht keinen Key, nur die Bridge-URL aus der Config.
 | `src/services/NotifierService.ts` | Polling, Dedupe, Live-Rollen, Verschicken |
 | `src/services/notifier/YouTubeAdapter.ts` | RSS-Erkennung, API-Anreicherung |
 | `src/services/notifier/TwitchAdapter.ts` | App-Token, Sammelabfrage, Rate-Limit |
-| `src/services/notifier/TikTokAdapter.ts` | Feed-Bridge |
-| `src/services/notifier/Feed.ts` | Atom- und RSS-Parser, ohne Dependency |
+| `src/services/notifier/Feed.ts` | Atom-Parser für den YouTube-Feed, ohne Dependency |
 | `src/services/notifier/Http.ts` | Timeout, Rate-Limit-Erkennung, Key-Maskierung |
 | `src/builder/NotifierPanel.ts` | Das Setup-Panel |
 | `src/builder/NotifierMessage.ts` | Die Meldung selbst |
@@ -185,7 +182,7 @@ TikTok braucht keinen Key, nur die Bridge-URL aus der Config.
 | `src/runnables/NotifierPoll.ts` | Der Minuten-Takt |
 | `src/constants/Notifier.ts` | Standards, Normalisierung, Regeln |
 | `src/database/models/NotifierSubscription.ts` | Die Tabelle |
-| `src/config/notifier.json` | Stile, Farben, TikTok-Bridge |
+| `src/config/notifier.json` | Stile und Farben |
 
 ---
 
@@ -195,6 +192,6 @@ TikTok braucht keinen Key, nur die Bridge-URL aus der Config.
 npx tsx src/tests/Notifier.test.ts
 ```
 
-Prüft ohne Netz und ohne Datenbank: Ruhezeit über Mitternacht und über den Sommerzeit-Wechsel, alle 11 Platzhalter, den Feed-Parser gegen Atom und RSS, die sieben Melde-Regeln (inklusive Erstsichtung), das Reparieren kaputter Datenbankzeilen und 18 Panel-Zustände.
+Prüft ohne Netz und ohne Datenbank: Ruhezeit über Mitternacht und über den Sommerzeit-Wechsel, alle 11 Platzhalter, den Atom-Parser, die sieben Melde-Regeln (inklusive Erstsichtung), das Reparieren kaputter Datenbankzeilen und 18 Panel-Zustände.
 
 Läuft absichtlich auch unter `TZ=UTC` — genau dort fällt ein Zeitzonen-Fehler in der Ruhezeit auf.

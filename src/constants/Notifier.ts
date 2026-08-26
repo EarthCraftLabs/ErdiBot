@@ -12,7 +12,7 @@ export const MAX_URL_LENGTH = 255;
 export const MIN_COOLDOWN = 0;
 export const MAX_COOLDOWN = 1440;
 
-export const PLATFORMS = ["youtube", "twitch", "tiktok"] as const;
+export const PLATFORMS = ["youtube", "twitch"] as const;
 export const STYLES = ["container", "text"] as const;
 
 export const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -21,26 +21,23 @@ export const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 export const PLATFORM_LABEL: Record<Platform, string> = {
     youtube: "YouTube",
     twitch: "Twitch",
-    tiktok: "TikTok",
 };
 
 export const PLATFORM_EMOJI: Record<Platform, string> = {
     youtube: "📺",
     twitch: "🟣",
-    tiktok: "🎵",
 };
 
 export const PLATFORM_ACCENT: Record<Platform, string> = {
     youtube: "#FF0000",
     twitch: "#9146FF",
-    tiktok: "#00F2EA",
 };
 
-// Nur Twitch und YouTube kennen einen Live-Zustand - bei TikTok gibt es nichts zu entziehen.
+// Beide Plattformen kennen einen Live-Zustand. Bleibt das so, ist die Abfrage überflüssig -
+// sie steht hier, damit eine Plattform ohne Live-Begriff nicht durch den ganzen Code muss.
 export const SUPPORTS_LIVE: Record<Platform, boolean> = {
     youtube: true,
     twitch: true,
-    tiktok: false,
 };
 
 export function IsHex(value: string): boolean {
@@ -79,7 +76,7 @@ export function Color(value: unknown, fallback: string): string {
 
 export const PLACEHOLDERS: Array<{ token: string; description: string }> = [
     { token: "{name}", description: "Anzeigename des Kanals" },
-    { token: "{platform}", description: "YouTube, Twitch oder TikTok" },
+    { token: "{platform}", description: "YouTube oder Twitch" },
     { token: "{title}", description: "Titel des Streams oder Videos" },
     { token: "{link}", description: "Direktlink zum Stream oder Video" },
     { token: "{url}", description: "Link zum Kanal selbst" },

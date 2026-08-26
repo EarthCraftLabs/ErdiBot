@@ -6,7 +6,6 @@ Was der [Notifier](Notifier.md) braucht, wo man es herbekommt und wo es hingehö
 |---|---|---|---|
 | YouTube | `YOUTUBE_API_KEY` | ~5 Min. | …eingeschränkt: neue Videos werden erkannt, aber ohne Vorschaubild und ohne Live-Erkennung |
 | Twitch | `TWITCH_CLIENT_ID` + `TWITCH_CLIENT_SECRET` | ~5 Min. | …gar nicht |
-| TikTok | **kein Key** | — | …über eine Feed-Bridge, siehe unten |
 
 ---
 
@@ -77,39 +76,19 @@ Twitch gibt 800 Punkte pro Minute. Der Notifier fragt **alle** beobachteten Kan�
 
 ---
 
-## TikTok
+## TikTok — nicht dabei
 
-**Es gibt keinen Key, den du besorgen könntest.** Das ist keine Bequemlichkeit, sondern eine Einschränkung von TikTok selbst.
+Geprüft und verworfen. TikTok bietet **keine** Schnittstelle an, über die sich die Uploads eines fremden Creators beobachten lassen.
 
-### Warum
+| Was es gibt | Was es tut | Warum es nicht reicht |
+|---|---|---|
+| **Display API** | Zeigt Videos eines Creators in einer fremden App | Der Creator muss die App per OAuth autorisieren, und die App muss ein App-Review durchlaufen (Tage bis Wochen) |
+| **Content Posting API** | *Veröffentlicht* Videos auf TikTok | Genau die Gegenrichtung — sie schreibt, sie liest nicht |
 
-TikToks **Display API** klingt passend, ist es aber nicht: sie zeigt die Videos eines Creators, **der deine App vorher per OAuth autorisiert hat**. Für einen fremden Creator, dessen Uploads du nur beobachten willst, gibt es keinen Weg. Dazu kommt: jede App muss vor der Freischaltung ein **App-Review** von TikTok durchlaufen, das mehrere Tage bis zwei Wochen dauert.
+Bliebe eine RSS-Bridge eines Drittanbieters. Die funktioniert technisch, hängt aber an fremder Infrastruktur, die gedrosselt wird, ausfällt oder verschwindet. Für einen Notifier, auf den Verlass sein soll, ist das die falsche Grundlage — deshalb ist TikTok bewusst nicht dabei.
 
-### Was der Bot stattdessen macht
+Sollte TikTok je eine echte Lese-API anbieten: Die Plattform-Liste ist eine Konstante in `src/constants/Notifier.ts`, der Adapter ein Interface mit vier Methoden. Dann sind es eine Datei und ein Listeneintrag.
 
-Er liest einen RSS-Feed. Welchen, steht in `src/config/notifier.json`:
-
-```json
-"tiktok_bridge": "https://rsshub.app/tiktok/user/@{handle}"
-```
-
-`{handle}` wird durch den TikTok-Handle ersetzt. Jede Quelle, die RSS oder Atom liefert, funktioniert.
-
-### Für den Dauerbetrieb: eigene Bridge
-
-Die öffentliche RSSHub-Instanz ist gratis, aber geteilt — sie wird gedrosselt, ist manchmal offline und kann jederzeit verschwinden. Wenn dir TikTok wichtig ist, hoste RSSHub selbst:
-
-```bash
-docker run -d --name rsshub -p 1200:1200 diygod/rsshub
-```
-
-Danach in der `notifier.json`:
-
-```json
-"tiktok_bridge": "http://localhost:1200/tiktok/user/@{handle}"
-```
-
-Die Datei wird im `--dev` Modus im laufenden Betrieb neu geladen, ein Neustart ist nicht nötig.
 
 ---
 
@@ -120,12 +99,11 @@ Nach dem Eintragen den Bot neu starten und `/notifier` aufrufen → **Status**. 
 ```
 📺 YouTube — ✅ bereit
 🟣 Twitch  — ❌ nicht eingerichtet
-🎵 TikTok  — ✅ bereit
 ```
 
 Steht dort *nicht eingerichtet*, obwohl der Key in der `.env` steht, dann fast immer aus einem dieser drei Gründe:
 
-- **Anführungszeichen vergessen.** Ein `#` im Wert startet sonst einen Kommentar und leert ihn still.
+- **Anführungszeichen vergessen.** Ein `#` im Wert startet in der `.env` einen Kommentar und leert ihn still.
 - **Bot nicht neu gestartet.** Die `.env` wird nur beim Start gelesen, anders als die JSON-Configs.
 - **Tippfehler im Variablennamen.** Er muss exakt `YOUTUBE_API_KEY`, `TWITCH_CLIENT_ID` beziehungsweise `TWITCH_CLIENT_SECRET` heißen.
 

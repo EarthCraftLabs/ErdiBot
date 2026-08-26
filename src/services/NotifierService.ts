@@ -15,7 +15,6 @@ import INotifierRecord from "../interfaces/services/notifier/INotifierRecord";
 import INotifierSubscription, { Platform } from "../interfaces/services/notifier/INotifierSubscription";
 import { INotifierEvent, IPlatformAdapter } from "../interfaces/services/notifier/INotifierEvent";
 import INotifierService, { IPlaceholderContext, IPollSummary } from "../interfaces/services/notifier/INotifierService";
-import TikTokAdapter from "./notifier/TikTokAdapter";
 import TwitchAdapter from "./notifier/TwitchAdapter";
 import YouTubeAdapter from "./notifier/YouTubeAdapter";
 import {
@@ -47,7 +46,6 @@ export default class NotifierService implements INotifierService {
         this.adapters = new Map<Platform, IPlatformAdapter>([
             ["youtube", new YouTubeAdapter(client)],
             ["twitch", this.twitch],
-            ["tiktok", new TikTokAdapter(client)],
         ]);
     }
 

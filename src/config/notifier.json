@@ -1,7 +1,6 @@
 [
     {
         "pagination": false,
-        "tiktok_bridge": "https://rsshub.app/tiktok/user/@{handle}",
         "styles": [
             {
                 "name": "Container",
@@ -30,7 +29,7 @@
                 "emoji": "🟣"
             },
             {
-                "name": "TikTok-Cyan",
+                "name": "Türkis",
                 "description": "Akzentfarbe #00F2EA",
                 "value": "#00F2EA",
                 "emoji": "🩵"

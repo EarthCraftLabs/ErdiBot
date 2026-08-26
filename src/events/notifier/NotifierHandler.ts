@@ -353,7 +353,6 @@ export default class NotifierHandler extends Event {
         const hints: Record<Platform, string> = {
             youtube: "@handle, Kanal-Link oder Kanal-ID (UC…)",
             twitch: "Kanalname oder twitch.tv-Link",
-            tiktok: "@handle oder tiktok.com-Link",
         };
 
         await this.Show(interaction, "source", `${PLATFORM_LABEL[platform]} hinzufügen`, [

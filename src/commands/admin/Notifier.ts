@@ -8,7 +8,7 @@ export default class Notifier extends Command {
     constructor(client: BotClient) {
         super(client, {
             name: "notifier",
-            description: "Richtet Benachrichtigungen für YouTube, Twitch und TikTok ein",
+            description: "Richtet Benachrichtigungen für YouTube und Twitch ein",
             category: Category.Admin,
             cooldown: 5,
             developerOnly: false,
