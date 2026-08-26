@@ -3,12 +3,14 @@
         "HOST": "localhost",
         "PORT": 3306,
         "USER": "erdibot",
+        "PASSWORD": "DEIN_DB_PASSWORT",
         "NAME": "erdibot"
     },
     "DEV_DATABASE": {
         "HOST": "localhost",
         "PORT": 3306,
         "USER": "erdibot",
+        "PASSWORD": "DEIN_DB_PASSWORT",
         "NAME": "erdibot_dev"
     },
     "DEV_GUILD_ID": "DEINE_TEST_SERVER_ID",

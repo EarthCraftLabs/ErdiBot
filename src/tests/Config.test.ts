@@ -9,8 +9,6 @@ const KEYS = [
     "CLIENT_ID",
     "DEV_CLIENT_TOKEN",
     "DEV_CLIENT_ID",
-    "DATABASE_PASSWORD",
-    "DEV_DATABASE_PASSWORD",
     "SERVER_JWT_SECRET",
     "YOUTUBE_API_KEY",
     "TWITCH_CLIENT_ID",
@@ -22,14 +20,12 @@ const FULL_ENV = [
     'CLIENT_ID="1"',
     'DEV_CLIENT_TOKEN="token-dev"',
     'DEV_CLIENT_ID="2"',
-    'DATABASE_PASSWORD="#raute-am-anfang"',
-    'DEV_DATABASE_PASSWORD="dev-pass"',
     'SERVER_JWT_SECRET="secret"',
 ].join("\n");
 
 const FULL_CONFIG = {
-    DATABASE: { HOST: "localhost", PORT: 3306, USER: "erdibot", NAME: "erdibot" },
-    DEV_DATABASE: { HOST: "localhost", USER: "erdibot", NAME: "erdibot_dev" },
+    DATABASE: { HOST: "localhost", PORT: 3306, USER: "erdibot", PASSWORD: "#raute-am-anfang", NAME: "erdibot" },
+    DEV_DATABASE: { HOST: "localhost", USER: "erdibot", PASSWORD: "dev-pass", NAME: "erdibot_dev" },
     DEV_GUILD_ID: "123",
     DEV_USER_IDs: ["456"],
     SERVER_PORT: 3000,
@@ -75,12 +71,17 @@ try {
     assert.equal(good.config.CLIENT_TOKEN, "token-prod");
     assert.equal(good.config.DEV_CLIENT_TOKEN, "token-dev");
 
-    // Der eigentliche Stolperstein: ein # im Wert wird ohne Anführungszeichen zum Kommentar.
-    assert.equal(good.config.DATABASE.PASSWORD, "#raute-am-anfang", "Anführungszeichen retten die Raute");
+    // Das Passwort steht bei seinen Zugangsdaten in der config.json, nicht in der .env.
+    assert.equal(good.config.DATABASE.PASSWORD, "#raute-am-anfang", "JSON braucht kein Maskieren der Raute");
 
     assert.equal(good.config.DATABASE.PORT, 3306);
     assert.equal(good.config.DEV_DATABASE.PORT, 3306, "fehlender Port fällt auf 3306");
     assert.equal(good.config.DEV_DATABASE.PASSWORD, "dev-pass", "jede Datenbank hat ihr eigenes Passwort");
+
+    const noPassword = Attempt(FULL_ENV, { ...FULL_CONFIG, DATABASE: { HOST: "h", USER: "u", NAME: "n" } });
+
+    assert.ok(noPassword.ok, "eine Datenbank ohne Passwort ist erlaubt");
+    assert.equal(noPassword.ok && noPassword.config.DATABASE.PASSWORD, "", "und wird zum leeren String");
     assert.deepEqual(good.config.DEV_USER_IDs, ["456"]);
     assert.equal(good.config.SERVER_PUBLIC_URL, "https://api.example.com");
 
