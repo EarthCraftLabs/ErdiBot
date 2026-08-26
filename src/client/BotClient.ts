@@ -1,4 +1,4 @@
-import { Client, Collection, GatewayIntentBits } from "discord.js";
+import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
 import IBotClient from "../interfaces/client/IBotClient";
 import Command from "../structures/Command";
 import logger from "../utils/logger";
@@ -14,6 +14,7 @@ import DiscordService from "../services/DiscordService";
 import DevLogsService from "../services/DevLogsService";
 import WelcomeService from "../services/WelcomeService";
 import NotifierService from "../services/NotifierService";
+import LoggingService from "../services/LoggingService";
 import Server from "../Server";
 
 export default class BotClient extends Client implements IBotClient {
@@ -32,6 +33,7 @@ export default class BotClient extends Client implements IBotClient {
     devLogsService: DevLogsService;
     welcomeService: WelcomeService;
     notifierService: NotifierService;
+    loggingService: LoggingService;
     server: Server;
 
     constructor() {
@@ -51,7 +53,17 @@ export default class BotClient extends Client implements IBotClient {
                 GatewayIntentBits.GuildModeration,
                 GatewayIntentBits.GuildMessageTyping,
                 GatewayIntentBits.DirectMessages,
-            ], 
+            ],
+            // Ohne Partials feuert messageDelete nur für Nachrichten, die noch im Cache
+            // liegen. Alles Ältere verschwindet still - und genau das will ein Log sehen.
+            partials: [
+                Partials.Message,
+                Partials.Channel,
+                Partials.User,
+                Partials.GuildMember,
+                Partials.Reaction,
+                Partials.ThreadMember,
+            ],
         });
 
         this.config = LoadConfig();
@@ -68,6 +80,7 @@ export default class BotClient extends Client implements IBotClient {
         this.devLogsService = new DevLogsService(this);
         this.welcomeService = new WelcomeService(this);
         this.notifierService = new NotifierService(this);
+        this.loggingService = new LoggingService(this);
         this.server = new Server(this);
     }
 
@@ -94,6 +107,7 @@ export default class BotClient extends Client implements IBotClient {
                 await this.galleryService.Initialize();
                 await this.welcomeService.Initialize();
                 await this.notifierService.Initialize();
+                await this.loggingService.Initialize();
             })
             .catch((err) => logger.error("🗄️  MariaDB connection failed", err));
 
