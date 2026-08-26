@@ -74,14 +74,16 @@ function Num(file: Record<string, unknown>, key: string, fallback: number): numb
     return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-function Database(file: Record<string, unknown>, key: string, password: string): IDatabaseConfig {
+// Das Passwort steht bei seinen Zugangsdaten, nicht in der .env - Host, User und Passwort
+// gehoeren zusammen, und getrennt einzurichten ist eine Fehlerquelle mehr.
+function Database(file: Record<string, unknown>, key: string): IDatabaseConfig {
     const section = Section(file, key);
 
     return {
         HOST: Text(section, "HOST"),
         PORT: Num(section, "PORT", 3306),
         USER: Text(section, "USER"),
-        PASSWORD: password,
+        PASSWORD: Text(section, "PASSWORD", ""),
         NAME: Text(section, "NAME"),
     };
 }
@@ -97,13 +99,13 @@ export default function LoadConfig(): IConfig {
     return {
         CLIENT_TOKEN: Secret("CLIENT_TOKEN"),
         CLIENT_ID: Secret("CLIENT_ID"),
-        DATABASE: Database(file, "DATABASE", Optional("DATABASE_PASSWORD")),
+        DATABASE: Database(file, "DATABASE"),
 
         DEV_CLIENT_TOKEN: Secret("DEV_CLIENT_TOKEN"),
         DEV_CLIENT_ID: Secret("DEV_CLIENT_ID"),
         DEV_GUILD_ID: Text(file, "DEV_GUILD_ID"),
         DEV_USER_IDs: Array.isArray(developers) ? developers.map(String) : [],
-        DEV_DATABASE: Database(file, "DEV_DATABASE", Optional("DEV_DATABASE_PASSWORD")),
+        DEV_DATABASE: Database(file, "DEV_DATABASE"),
 
         SERVER_PORT: Num(file, "SERVER_PORT", 3000),
         SERVER_PUBLIC_URL: Text(file, "SERVER_PUBLIC_URL", "http://localhost:3000"),
