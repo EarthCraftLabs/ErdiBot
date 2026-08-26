@@ -6,6 +6,7 @@ export interface IDatabaseConfig {
     NAME: string;
 }
 
+// Zusammengesetzt aus config.json (Infrastruktur) und .env (Geheimnisse) - siehe utils/config.ts.
 export interface IConfig {
     CLIENT_TOKEN: string;
     CLIENT_ID: string;
@@ -23,4 +24,8 @@ export interface IConfig {
     SERVER_JWT_EXPIRES_IN: string;
     SERVER_RATE_LIMIT_MAX: number;
     SERVER_RATE_LIMIT_WINDOW: string;
+
+    YOUTUBE_API_KEY: string;
+    TWITCH_CLIENT_ID: string;
+    TWITCH_CLIENT_SECRET: string;
 }

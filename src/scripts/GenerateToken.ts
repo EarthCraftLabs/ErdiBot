@@ -1,6 +1,5 @@
-import path from "path";
-import { readFileSync } from "node:fs";
 import { IConfig } from "../interfaces/config/IConfig";
+import LoadConfig from "../utils/config";
 import { CreateToken, GenerateSecret, VerifyToken } from "../utils/jwt";
 import { ParseDuration } from "../utils/duration";
 
@@ -30,7 +29,7 @@ function Fail(message: string): never {
 
 function Main(): void {
     if (process.argv.includes("--secret")) {
-        console.log("\nNeues Secret - trage es in der config.json unter SERVER_JWT_SECRET ein:\n");
+        console.log("\nNeues Secret - trage es in der .env unter SERVER_JWT_SECRET ein:\n");
         console.log(`  ${GenerateSecret()}\n`);
         console.log("Achtung: alle bereits ausgegebenen Tokens werden damit ungültig.\n");
 
@@ -46,9 +45,9 @@ function Main(): void {
     let config: IConfig;
 
     try {
-        config = JSON.parse(readFileSync(path.join(process.cwd(), "config.json"), "utf8"));
+        config = LoadConfig();
     } catch (error) {
-        Fail(`config.json konnte nicht gelesen werden: ${error instanceof Error ? error.message : String(error)}`);
+        Fail(error instanceof Error ? error.message : String(error));
     }
 
     const subject = Argument("sub");
