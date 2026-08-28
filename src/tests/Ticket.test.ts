@@ -25,6 +25,7 @@ import {
     MissingPieces,
     NormalizeConfig,
     NormalizeTicket,
+    MayUseAction,
     Number4,
     PRIORITIES,
     Priority,
@@ -298,6 +299,22 @@ assert.ok(logJson.includes("2 Std."), "die Laufzeit steht drin");
 assert.ok(logJson.includes("nach 12 Min. übernommen"), "die Reaktionszeit steht drin");
 assert.ok(logJson.includes("Rückerstattung"), "Team-Notizen stehen im Transcript-Kanal");
 assert.ok(logJson.includes(transcript.url));
+
+// Der Ersteller darf sein eigenes Ticket schliessen - und nur das.
+assert.equal(MayUseAction("close", false, true), true, "der Ersteller schliesst sein Ticket selbst");
+assert.equal(MayUseAction("freeze", false, true), false, "einfrieren bleibt dem Team vorbehalten");
+assert.equal(MayUseAction("blacklist", false, true), false, "sperren erst recht");
+assert.equal(MayUseAction("close", false, false), false, "ein Unbeteiligter schliesst gar nichts");
+assert.equal(MayUseAction("close", true, false), true, "das Team darf immer");
+assert.equal(MayUseAction("freeze", true, false), true, "das Team darf jede Aktion");
+assert.equal(MayUseAction(undefined, false, true), false, "ohne Aktion gibt es kein Schlupfloch");
+
+const withReason = BuildTranscriptLog({ ...payload, reason: "Anliegen erledigt" });
+
+assert.ok(
+    JSON.stringify(withReason.components?.[0]).includes("Anliegen erledigt"),
+    "der Schliessgrund gehört ins Transcript"
+);
 
 const dm = BuildTranscriptDM(payload);
 const dmJson = JSON.stringify(dm.components?.[0]);

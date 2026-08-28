@@ -27,6 +27,14 @@ export const CLOSE_DELAY = 8_000;
 
 export const ALL_ROLES = "all";
 
+export const CLOSE_ACTION = "close";
+
+// Das Team-Menü hängt an der Hauptnachricht und ist damit auch für den Ersteller sichtbar.
+// Er darf daraus genau eine Aktion auslösen: sein eigenes Ticket schliessen.
+export function MayUseAction(action: string | undefined, isSupporter: boolean, isCreator: boolean): boolean {
+    return isSupporter || (isCreator && action === CLOSE_ACTION);
+}
+
 export interface IPriorityInfo {
     id: TicketPriority;
     label: string;
