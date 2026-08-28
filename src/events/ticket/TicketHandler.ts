@@ -25,9 +25,11 @@ import { ITicket, IStaffNote } from "../../interfaces/services/ticket/ITicket";
 import { ITicketConfig } from "../../interfaces/services/ticket/ITicketConfig";
 import { IActionOption } from "../../interfaces/services/ticket/ITicketPanel";
 import {
+    CLOSE_ACTION,
     CLOSE_DELAY,
     Clamp,
     CONFIG_KEY,
+    MayUseAction,
     IsPriority,
     MAX_ADDED_USERS,
     MAX_NOTES,
@@ -160,11 +162,11 @@ export default class TicketHandler extends Event {
     private async Menu(interaction: MessageComponentInteraction): Promise<void> {
         if (!interaction.isAnySelectMenu() || !interaction.guild) return;
 
-        const context = await this.Context(interaction);
+        const action = interaction.values[0];
+        const context = await this.Context(interaction, action);
         if (!context) return;
 
         const { ticket, config, channel } = context;
-        const action = interaction.values[0];
 
         // Modals müssen vor jedem Update geöffnet werden.
         const modals: Record<string, () => Promise<void>> = {
@@ -182,6 +184,18 @@ export default class TicketHandler extends Event {
                         description: "z.B. 7d, 12h — leer bedeutet dauerhaft",
                         max: 10,
                         required: false,
+                    },
+                ]),
+            close: () =>
+                this.Show(interaction, "close", "Ticket schließen", [
+                    {
+                        id: "reason",
+                        label: "Grund",
+                        value: "",
+                        description: context.isSupporter ? "Optional" : "Bitte kurz begründen",
+                        max: MAX_REASON_LENGTH,
+                        paragraph: true,
+                        required: !context.isSupporter,
                     },
                 ]),
             meeting: () =>
@@ -218,8 +232,6 @@ export default class TicketHandler extends Event {
                 return this.OfferUser(interaction, action === "adduser");
             case "freeze":
                 return this.Freeze(interaction, context);
-            case "close":
-                return this.Close(interaction, context);
             default:
                 return this.Tell(interaction, "❔ Diese Aktion kenne ich nicht.");
         }
@@ -463,7 +475,11 @@ export default class TicketHandler extends Event {
 
     // ── Schliessen ─────────────────────────────────────────────────────────
 
-    private async Close(interaction: MessageComponentInteraction, context: IContext): Promise<void> {
+    private async Close(
+        interaction: MessageComponentInteraction | ModalSubmitInteraction,
+        context: IContext,
+        reason: string | null
+    ): Promise<void> {
         const { ticket, config, channel } = context;
         const service = this.client.ticketService;
 
@@ -483,7 +499,7 @@ export default class TicketHandler extends Event {
             closedBy: interaction.user,
             transcript,
             channelName: channel.name,
-            reason: null,
+            reason,
         };
 
         // Der Ersteller sieht vom Abschluss sonst nichts - im Kategorie-Modus ist der
@@ -509,6 +525,7 @@ export default class TicketHandler extends Event {
                 Line("🎫", "Ticket", `#${Number4(ticket.ticketNumber)} — \`${channel.name}\``),
                 Line("👤", "Ersteller", Mention(ticket.creatorId)),
                 Line("🔒", "Geschlossen von", Mention(interaction.user.id, interaction.user.tag)),
+                Line("📋", "Grund", reason ?? "kein Grund angegeben"),
                 Line("💬", "Nachrichten", String(transcript.messageCount)),
                 Line("🌐", "Transcript", `[öffnen](${transcript.url})`),
             ].join("\n"),
@@ -518,6 +535,7 @@ export default class TicketHandler extends Event {
             .send({
                 content:
                     `🔒 Dieses Ticket wurde von ${interaction.user} geschlossen.\n` +
+                    (reason ? `📋 **Grund:** ${reason}\n` : "") +
                     (ticket.mode === TicketMode.CATEGORY
                         ? `-# Der Kanal verschwindet in ${CLOSE_DELAY / 1000} Sekunden. Das Transcript liegt bereits im Archiv.`
                         : "-# Der Beitrag wird gleich archiviert. Das Transcript liegt im Archiv."),
@@ -642,13 +660,15 @@ export default class TicketHandler extends Event {
 
     private async Modal(interaction: ModalSubmitInteraction): Promise<void> {
         const kind = interaction.customId.split(":")[2];
-        const context = await this.Context(interaction);
+        const context = await this.Context(interaction, kind);
         if (!context) return;
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const read = (id: string) => interaction.fields.getTextInputValue(id).trim();
         const { ticket, channel } = context;
+
+        if (kind === CLOSE_ACTION) return this.Close(interaction, context, read("reason") || null);
 
         if (kind === "slowmode") {
             const seconds = Clamp(Number(read("seconds")), MIN_SLOWMODE, MAX_SLOWMODE);
@@ -782,7 +802,8 @@ export default class TicketHandler extends Event {
     // ── Hilfen ─────────────────────────────────────────────────────────────
 
     private async Context(
-        interaction: MessageComponentInteraction | ModalSubmitInteraction
+        interaction: MessageComponentInteraction | ModalSubmitInteraction,
+        action?: string
     ): Promise<IContext | null> {
         const channel = interaction.channel;
 
@@ -799,15 +820,23 @@ export default class TicketHandler extends Event {
         const config = await this.client.ticketService.Config(ticket.guildId);
         const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
 
-        // Das Menü hängt an der Hauptnachricht und ist damit auch für den Ersteller sichtbar -
-        // benutzen darf es trotzdem nur das Team.
-        if (!member || !this.client.ticketService.IsSupporter(member, config)) {
-            await this.Reply(interaction, "❌ Die Team-Aktionen sind dem Support-Team vorbehalten.");
+        const isSupporter = Boolean(member && this.client.ticketService.IsSupporter(member, config));
+        const isCreator = interaction.user.id === ticket.creatorId;
+
+        // Das Menü hängt an der Hauptnachricht und ist damit auch für den Ersteller sichtbar.
+        // Er darf genau eine Aktion: sein eigenes Ticket schliessen. Alles andere bleibt beim Team.
+        if (!member || !MayUseAction(action, isSupporter, isCreator)) {
+            await this.Reply(
+                interaction,
+                isCreator
+                    ? "❌ Diese Aktion ist dem Support-Team vorbehalten — schließen darfst du dein Ticket selbst."
+                    : "❌ Die Team-Aktionen sind dem Support-Team vorbehalten."
+            );
 
             return null;
         }
 
-        return { ticket, config, channel: channel as TicketChannel };
+        return { ticket, config, channel: channel as TicketChannel, isSupporter };
     }
 
     private async ApplyForumTags(channel: TicketChannel, ticket: ITicket): Promise<void> {
@@ -871,4 +900,5 @@ interface IContext {
     ticket: ITicket;
     config: ITicketConfig;
     channel: TicketChannel;
+    isSupporter: boolean;
 }
