@@ -95,6 +95,16 @@ try {
     assert.equal(withKeys.config.YOUTUBE_API_KEY, "yt-key");
     assert.equal(withKeys.config.TWITCH_CLIENT_ID, "tw-id");
 
+    // Ohne Auto-Join-Ziele startet der Bot trotzdem - der OAuth2-Link legt dann niemanden auf den Server.
+    assert.equal(good.config.OAUTH_GUILD_ID, "");
+    assert.equal(good.config.OAUTH_ROLE_ID, "");
+
+    const withJoin = Attempt(FULL_ENV, { ...FULL_CONFIG, OAUTH_GUILD_ID: "789", OAUTH_ROLE_ID: "321" });
+
+    assert.ok(withJoin.ok);
+    assert.equal(withJoin.config.OAUTH_GUILD_ID, "789");
+    assert.equal(withJoin.config.OAUTH_ROLE_ID, "321");
+
     Fails(Attempt(null, FULL_CONFIG), "CLIENT_TOKEN", "ohne .env fehlt der Token");
     Fails(Attempt(FULL_ENV, null), "config.json fehlt", "ohne config.json gibt es eine klare Meldung");
     Fails(Attempt(FULL_ENV.replace('SERVER_JWT_SECRET="secret"', ""), FULL_CONFIG), "SERVER_JWT_SECRET", "ein fehlendes Secret wird benannt");

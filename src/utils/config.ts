@@ -99,10 +99,12 @@ export default function LoadConfig(): IConfig {
     return {
         CLIENT_TOKEN: Secret("CLIENT_TOKEN"),
         CLIENT_ID: Secret("CLIENT_ID"),
+        CLIENT_SECRET: Optional("CLIENT_SECRET"),
         DATABASE: Database(file, "DATABASE"),
 
         DEV_CLIENT_TOKEN: Secret("DEV_CLIENT_TOKEN"),
         DEV_CLIENT_ID: Secret("DEV_CLIENT_ID"),
+        DEV_CLIENT_SECRET: Optional("DEV_CLIENT_SECRET"),
         DEV_GUILD_ID: Text(file, "DEV_GUILD_ID"),
         DEV_USER_IDs: Array.isArray(developers) ? developers.map(String) : [],
         DEV_DATABASE: Database(file, "DEV_DATABASE"),
@@ -113,6 +115,11 @@ export default function LoadConfig(): IConfig {
         SERVER_JWT_EXPIRES_IN: Text(file, "SERVER_JWT_EXPIRES_IN", "30d"),
         SERVER_RATE_LIMIT_MAX: Num(file, "SERVER_RATE_LIMIT_MAX", 100),
         SERVER_RATE_LIMIT_WINDOW: Text(file, "SERVER_RATE_LIMIT_WINDOW", "1 minute"),
+
+        // Auto-Join über den OAuth2-Link. Fehlt ein Wert, bleibt der Beitritt bzw. die Rolle aus -
+        // der Bot startet trotzdem.
+        OAUTH_GUILD_ID: Text(file, "OAUTH_GUILD_ID", ""),
+        OAUTH_ROLE_ID: Text(file, "OAUTH_ROLE_ID", ""),
 
         YOUTUBE_API_KEY: Optional("YOUTUBE_API_KEY"),
         TWITCH_CLIENT_ID: Optional("TWITCH_CLIENT_ID"),

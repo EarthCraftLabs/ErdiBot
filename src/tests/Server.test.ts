@@ -65,9 +65,21 @@ const discordService = {
     },
 };
 
+const oauthService = {
+    Ready: false,
+    Hint: "CLIENT_SECRET fehlt in der .env.",
+    Authorize: () => "https://discord.com/oauth2/authorize?client_id=1&state=abc",
+    async Login(code: string, state: string) {
+        return code === "guter-code" && state === "guter-state"
+            ? { ok: true, value: { user: { id: USER }, token: "jwt", joined: true, role: true } }
+            : { ok: false, status: 400, error: "Der state ist ungültig oder abgelaufen" };
+    },
+};
+
 const client = {
     developerMode: true,
     discordService,
+    oauthService,
     config: {
         SERVER_PORT: PORT,
         SERVER_PUBLIC_URL: "https://bot.ascension-dach.org",
@@ -96,12 +108,14 @@ async function main(): Promise<void> {
     const api = `${base}${API_PREFIX}`;
 
     assert.equal(server.IsRunning, true, "nach dem Start muss IsRunning true sein");
-    assert.equal(server.Routes.Size, 8, `erwartet 8 Routen, registriert: ${server.Routes.Keys.join(", ")}`);
+    assert.equal(server.Routes.Size, 10, `erwartet 10 Routen, registriert: ${server.Routes.Keys.join(", ")}`);
 
     assert.deepEqual(
         server.Routes.Keys.sort(),
         [
             "DELETE /dcapi/guilds/:guildId/members/:userId/roles/:roleId",
+            "GET /auth/discord",
+            "GET /auth/discord/callback",
             "GET /dcapi/guilds",
             "GET /dcapi/guilds/:guildId",
             "GET /dcapi/guilds/:guildId/members/:userId",
@@ -110,11 +124,19 @@ async function main(): Promise<void> {
             "GET /transcripts/:id",
             "PUT /dcapi/guilds/:guildId/members/:userId/roles/:roleId",
         ],
-        "alles unter /dcapi ausser der Bilder-Route"
+        "alles unter /dcapi ausser Bildern, Transcripts und dem OAuth2-Login"
     );
 
     assert.equal(server.Routes.Get("GET /dcapi/health")!.requiresAuth, true, "/dcapi/health muss geschützt sein");
     assert.equal(server.Routes.Get("GET /images/*")!.requiresAuth, false, "/images/* muss offen bleiben");
+
+    // Wer sich erst registriert, hat noch kein Token - beide OAuth2-Routen müssen ohne auskommen.
+    assert.equal(server.Routes.Get("GET /auth/discord")!.requiresAuth, false, "/auth/discord muss offen sein");
+    assert.equal(
+        server.Routes.Get("GET /auth/discord/callback")!.requiresAuth,
+        false,
+        "/auth/discord/callback muss offen sein"
+    );
     assert.throws(() => (server.Port = 4000), /während der Server läuft/, "Port darf im Betrieb nicht wechseln");
 
     const withoutToken = await fetch(`${api}/health`);
@@ -169,6 +191,27 @@ async function main(): Promise<void> {
 
     assert.equal(revoked.status, 200);
     assert.deepEqual(await revoked.json(), { changed: false });
+
+    // Ohne Secret meldet sich der Login als nicht eingerichtet - und nicht als 401.
+    const login = await fetch(`${base}/auth/discord`, { redirect: "manual" });
+    assert.equal(login.status, 503, "ohne CLIENT_SECRET muss /auth/discord 503 liefern");
+
+    oauthService.Ready = true;
+
+    const redirect = await fetch(`${base}/auth/discord`, { redirect: "manual" });
+    assert.equal(redirect.status, 302, "eingerichtet muss /auth/discord zu Discord weiterleiten");
+    assert.ok(redirect.headers.get("location")?.startsWith("https://discord.com/oauth2/authorize"), "Ziel ist Discord");
+
+    const denied = await fetch(`${base}/auth/discord/callback?error=access_denied&error_description=Abgelehnt`);
+    assert.equal(denied.status, 400, "ein Abbruch auf dem Consent-Screen ist kein Serverfehler");
+    assert.equal((await denied.json()).error, "Abgelehnt");
+
+    const replayed = await fetch(`${base}/auth/discord/callback?code=guter-code&state=alter-state`);
+    assert.equal(replayed.status, 400, "ein verbrauchter state muss abgelehnt werden");
+
+    const callback = await fetch(`${base}/auth/discord/callback?code=guter-code&state=guter-state`);
+    assert.equal(callback.status, 200);
+    assert.deepEqual(await callback.json(), { user: { id: USER }, token: "jwt", joined: true, role: true });
 
     const image = await fetch(`${base}/images/default/__test/pixel.png`);
     assert.equal(image.status, 200, "Bild sollte ohne Token und ohne Präfix ausgeliefert werden");
