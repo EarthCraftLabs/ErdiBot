@@ -1,6 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import BotClient from "../client/BotClient";
 import Route from "../structures/Route";
+import { ParseDuration } from "../utils/duration";
+
+const COOKIE_NAME = "erdibot_token";
+const DEFAULT_LIFETIME = 2_592_000_000;
 
 interface ICallbackQuery {
     code?: string;
@@ -31,6 +35,29 @@ export default class AuthDiscordCallback extends Route {
 
         if (!result.ok) return reply.code(result.status).send({ error: result.error });
 
-        return result.value;
+        // Der Callback landet im Browser: im Verlauf, in der Adressleiste, auf Screenshots.
+        // Das Token gehört deshalb ins Cookie und nicht in die sichtbare Antwort.
+        const { token, ...body } = result.value;
+
+        reply.header("set-cookie", this.Cookie(token));
+
+        return body;
+    }
+
+    private Cookie(token: string): string {
+        const lifetime = ParseDuration(this.client.config.SERVER_JWT_EXPIRES_IN) ?? DEFAULT_LIFETIME;
+
+        const parts = [
+            `${COOKIE_NAME}=${token}`,
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            `Max-Age=${Math.floor(lifetime / 1000)}`,
+        ];
+
+        // Secure würde das Cookie über http verwerfen - lokal läuft der Server ohne TLS.
+        if (this.client.server.BaseURL.startsWith("https://")) parts.push("Secure");
+
+        return parts.join("; ");
     }
 }

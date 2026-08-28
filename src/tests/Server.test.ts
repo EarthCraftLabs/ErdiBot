@@ -84,12 +84,16 @@ const client = {
         SERVER_PORT: PORT,
         SERVER_PUBLIC_URL: "https://bot.ascension-dach.org",
         SERVER_JWT_SECRET: secret,
+        SERVER_JWT_EXPIRES_IN: "30d",
         SERVER_RATE_LIMIT_MAX: RATE_LIMIT_MAX,
         SERVER_RATE_LIMIT_WINDOW: "1 minute",
     },
 } as never;
 
 const server = new Server(client);
+
+// Der Callback baut sein Cookie aus der öffentlichen Adresse - der Client muss den Server kennen.
+(client as { server?: Server }).server = server;
 const token = CreateToken(secret, "minecraft-plugin", ParseDuration("1h")!);
 const auth = { authorization: `Bearer ${token}` };
 
@@ -211,7 +215,19 @@ async function main(): Promise<void> {
 
     const callback = await fetch(`${base}/auth/discord/callback?code=guter-code&state=guter-state`);
     assert.equal(callback.status, 200);
-    assert.deepEqual(await callback.json(), { user: { id: USER }, token: "jwt", joined: true, role: true });
+
+    // Der Callback landet im Browserverlauf - das Token darf dort nicht sichtbar sein.
+    const shown = await callback.text();
+
+    assert.ok(!shown.includes("jwt"), `das Token darf nicht in der Antwort stehen: ${shown}`);
+    assert.deepEqual(JSON.parse(shown), { user: { id: USER }, joined: true, role: true });
+
+    const cookie = callback.headers.get("set-cookie") ?? "";
+
+    assert.ok(cookie.includes("erdibot_token=jwt"), `das Token gehört ins Cookie: ${cookie}`);
+    assert.ok(cookie.includes("HttpOnly"), "das Cookie darf nicht aus dem Seiten-JavaScript lesbar sein");
+    assert.ok(cookie.includes("Max-Age=2592000"), "die Laufzeit kommt aus SERVER_JWT_EXPIRES_IN");
+    assert.ok(!cookie.includes("Secure"), "über http verwirft der Browser ein Secure-Cookie");
 
     const image = await fetch(`${base}/images/default/__test/pixel.png`);
     assert.equal(image.status, 200, "Bild sollte ohne Token und ohne Präfix ausgeliefert werden");
