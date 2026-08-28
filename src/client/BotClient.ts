@@ -11,6 +11,7 @@ import RunnableService from "../services/RunnableService";
 import GalleryService from "../services/GalleryService";
 import ConfigService from "../services/ConfigService";
 import DiscordService from "../services/DiscordService";
+import OAuthService from "../services/OAuthService";
 import DevLogsService from "../services/DevLogsService";
 import WelcomeService from "../services/WelcomeService";
 import NotifierService from "../services/NotifierService";
@@ -31,6 +32,7 @@ export default class BotClient extends Client implements IBotClient {
     galleryService: GalleryService;
     configService: ConfigService;
     discordService: DiscordService;
+    oauthService: OAuthService;
     devLogsService: DevLogsService;
     welcomeService: WelcomeService;
     notifierService: NotifierService;
@@ -79,6 +81,7 @@ export default class BotClient extends Client implements IBotClient {
         this.galleryService = new GalleryService(this);
         this.configService = new ConfigService(this);
         this.discordService = new DiscordService(this);
+        this.oauthService = new OAuthService(this);
         this.devLogsService = new DevLogsService(this);
         this.welcomeService = new WelcomeService(this);
         this.notifierService = new NotifierService(this);
