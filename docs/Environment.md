@@ -8,7 +8,7 @@ Das Datenbank-Passwort steht deshalb in der `config.json`, direkt bei Host, Port
 
 Zusammengesetzt werden beide genau einmal, in `src/utils/config.ts`. Der Rest des Bots sieht nur noch ein fertiges `IConfig` über `this.client.config` und muss nicht wissen, woher ein Wert kam.
 
-Nicht zu verwechseln mit dem **ConfigService** (`src/config/*.json`, siehe [Config.md](Config.md)) — der verwaltet Auswahllisten für Discord-Panels, nicht die Zugangsdaten des Bots.
+Nicht zu verwechseln mit dem **ConfigService** (`src/config/*.json`, siehe [ConfigService.md](ConfigService.md)) — der verwaltet Auswahllisten für Discord-Panels, nicht die Zugangsdaten des Bots.
 
 ---
 
@@ -59,6 +59,8 @@ Ein `dotenv`-Paket wird nicht gebraucht — `process.loadEnvFile()` ist seit Nod
 ---
 
 ## `config.json` — Infrastruktur
+
+Feld für Feld, mit Fallstricken und Fehlermeldungen: [Config.md](Config.md).
 
 ```json
 {

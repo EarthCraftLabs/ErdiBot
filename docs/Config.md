@@ -1,226 +1,182 @@
-# Config
+# config.json
 
-Lädt die JSON-Dateien aus `src/config`, prüft sie gegen ein Schema und gibt sie typisiert wieder heraus. Dazu Dev-Overlays, Hot-Reload, Seiten-Aufteilung und fertige Select-Optionen für Discord.
+Die Infrastruktur des Bots: Datenbank, Server, Dev-Einstellungen, OAuth. Alles, was der Bot **selbst betreibt** — Zugangsdaten zu fremden Diensten stehen in der `.env`.
 
-Zugriff über den Client: `this.client.configService`.
+Gelesen wird die Datei genau einmal, in `src/utils/config.ts`. Der Rest des Bots sieht nur noch ein fertiges `IConfig` über `this.client.config`.
 
-Nicht zu verwechseln mit der `config.json` im Projekt-Root und der `.env` — dort stehen Token, Datenbank und Server-Einstellungen, siehe [Environment.md](Environment.md).
-
-> **`src/config` ist aktuell leer.** Der Service ist da, die Dateien kommen mit den Features, die sie brauchen. Vorlagen aus der JavaScript-Fassung liegen unter `Ascension/src/config`. Alle Beispiele hier sind entsprechend Beispiele, keine vorhandenen Dateien.
+Das Zusammenspiel beider Dateien steht in [Environment.md](Environment.md). Nicht zu verwechseln mit dem **ConfigService** (`src/config/*.json`, siehe [ConfigService.md](ConfigService.md)) — der verwaltet Auswahllisten für Discord-Panels.
 
 ---
 
-## Ablauf beim Start
+## Einrichtung
 
-1. `BotClient.Init()` ruft `configService.Initialize()` auf — unabhängig von Datenbank und Discord.
-2. Jede `*.json` in `src/config` wird gelesen, im Dev-Modus mit ihrem `*.dev.json` überlagert, geprüft und eingefroren.
-3. Eine fehlerhafte Datei wird übersprungen und gemeldet, die übrigen laufen weiter.
-4. Im `--dev` Modus startet danach `Watch()` — geänderte Dateien landen ohne Neustart im Speicher.
-5. Beim Shutdown läuft `Unwatch()`.
+```bash
+cp config.example.json config.json
+```
 
-Der Pfad kommt aus `process.cwd()`, nicht aus `__dirname`: `tsc` kopiert keine `.json` nach `dist`, im Build wäre der Ordner sonst leer. Voraussetzung ist damit nur, dass der Bot aus dem Projekt-Root gestartet wird.
+Die Datei liegt im **Projekt-Root**, nicht in `src`. Der Pfad wird beim Start aus `process.cwd()` aufgelöst — der Bot muss also aus dem Projekt-Root gestartet werden.
+
+`config.json` steht in der `.gitignore`, `config.example.json` ist die Vorlage und kommt mit.
 
 ---
 
-## Format
-
-Jede Datei ist ein **Array von Einträgen**. Jeder Eintrag braucht ein `pagination`-Flag, alles andere ist frei:
+## Vollständige Datei
 
 ```json
-[
-    {
-        "pagination": false,
-        "options": [
-            { "name": "Name", "description": "Ändere den Namen", "value": "name", "emoji": "📝" }
-        ]
-    }
-]
-```
+{
+    "DATABASE": {
+        "HOST": "localhost",
+        "PORT": 3306,
+        "USER": "erdibot",
+        "PASSWORD": "…",
+        "NAME": "erdibot"
+    },
+    "DEV_DATABASE": {
+        "HOST": "localhost",
+        "PORT": 3306,
+        "USER": "erdibot",
+        "PASSWORD": "…",
+        "NAME": "erdibot_dev"
+    },
 
-In der Praxis hat jede Datei genau einen Eintrag. Das Array bleibt trotzdem — dafür gibt es `GetOne()`, damit niemand `[0]` schreiben muss.
+    "DEV_GUILD_ID": "1162553851187040326",
+    "DEV_USER_IDs": ["1059621019947634739"],
 
-> **`panigation`** ist ein Tippfehler aus der JavaScript-Fassung, der dort in jeder Datei steht. Der Loader liest ihn weiterhin als `pagination` und warnt dabei — eine unverändert herüberkopierte Datei läuft also, ohne dass der Fehler still weiterlebt.
+    "SERVER_PORT": 3000,
+    "SERVER_PUBLIC_URL": "https://api.deine-domain.de",
+    "SERVER_JWT_EXPIRES_IN": "30d",
+    "SERVER_RATE_LIMIT_MAX": 100,
+    "SERVER_RATE_LIMIT_WINDOW": "1 minute",
 
----
-
-## Zugriff
-
-```ts
-const config = this.client.configService;
-
-config.Get<ISetupSettings>("setupsettings")       // alle Einträge
-config.GetOne<ISetupSettings>("setupsettings")    // der erste Eintrag
-config.Require<ISetupSettings>("setupsettings")   // wirft, statt null zu liefern
-config.Has("tempvoice")
-config.Value("emojis", "server_custom.ACCL", "")  // Punkt-Pfad mit Fallback
-```
-
-`Get` und `GetOne` melden einen unbekannten Schlüssel an den Guardian und geben `null` zurück. `Require` wirft stattdessen — richtig für alles, ohne das der Bot nicht sinnvoll läuft.
-
-Eine eigene Form beschreibst du über ein Interface, das `IConfigEntry` erweitert:
-
-```ts
-export default interface ITempVoice extends IConfigEntry {
-    options: IConfigOption[];
+    "OAUTH_GUILD_ID": "1162553851187040326",
+    "OAUTH_ROLE_ID": "1162553851187040330"
 }
 ```
 
-### Ergebnisse sind eingefroren
+| Feld | Typ | Pflicht | Standard |
+|---|---|---|---|
+| `DATABASE` | Objekt | ja | — |
+| `DEV_DATABASE` | Objekt | ja | — |
+| `DEV_GUILD_ID` | String | ja | — |
+| `DEV_USER_IDs` | String[] | nein | `[]` |
+| `SERVER_PORT` | Zahl | nein | `3000` |
+| `SERVER_PUBLIC_URL` | String | nein | `http://localhost:3000` |
+| `SERVER_JWT_EXPIRES_IN` | String | nein | `30d` |
+| `SERVER_RATE_LIMIT_MAX` | Zahl | nein | `100` |
+| `SERVER_RATE_LIMIT_WINDOW` | String | nein | `1 minute` |
+| `OAUTH_GUILD_ID` | String | nein | `""` |
+| `OAUTH_ROLE_ID` | String | nein | `""` |
 
-Geladene Einträge werden tief mit `Object.freeze` versehen. Alle Aufrufer bekommen dasselbe Objekt — wer hineinschreibt, würde es für alle ändern. Schreibversuche werfen deshalb:
-
-```ts
-config.GetOne("tempvoice")!.pagination = true;   // TypeError
-[...config.Options("tempvoice", "options")].sort();  // so geht sortieren
-```
-
----
-
-## Options-Listen
-
-Fast jedes Feld in diesen Dateien ist eine Liste aus `{ name, description, value, emoji }` — also genau eine Discord-Select-Option. Dafür gibt es eigene Methoden:
-
-```ts
-config.Options("setupsettings", "pages")                  // IConfigOption[]
-config.Option("tempvoice", "options", "name")             // eine Option über ihren value
-config.SelectOptions("setupsettings", "pages")            // StringSelectMenuOptionBuilder[]
-```
-
-`SelectOptions` baut fertige discord.js-Builder: Label und Beschreibung auf 100 Zeichen gekürzt, und `emoji` wird als Unicode gesetzt oder — wenn es eine Snowflake ist — als Custom-Emoji `{ id }`. Mehr als 25 Optionen gibt Discord nicht aus, deshalb wird dort abgeschnitten.
-
-```ts
-const menu = new StringSelectMenuBuilder()
-    .setCustomId("setup:page")
-    .addOptions(this.client.configService.SelectOptions("setupsettings", "pages"));
-```
-
-### Seiten
-
-Genau dafür ist das `pagination`-Flag da:
-
-```ts
-const page = config.Page("setupsettings", "pages", 2, 10);
-// { options, page: 2, pages: 4, total: 34, hasPrevious: true, hasNext: true }
-```
-
-- `pagination: true` → wird in Seiten zerlegt, Seitengröße ist `size` (maximal 25)
-- `pagination: false` → alles auf einer Seite, `pages` ist 1
-
-Seitenzahlen werden geklemmt: `0` wird zu `1`, alles über der letzten Seite wird zur letzten. `SelectOptions(key, field, page)` liefert direkt die Builder für eine Seite.
+Fehlt ein Pflichtfeld, startet der Bot **nicht** und nennt den Namen. Fehlt ein optionales, greift der Standard.
 
 ---
 
-## Schemas
+## Datenbank
 
-`src/constants/ConfigSchemas.ts` beschreibt pro Datei, wie sie auszusehen hat. Die Grundprüfung (Array, `pagination`) läuft immer, das Schema kommt obendrauf. `CONFIG_SCHEMAS` ist derzeit leer — pro neuer Datei kommt ein Eintrag dazu:
+`DATABASE` und `DEV_DATABASE` haben dieselbe Form. Welche der beiden benutzt wird, entscheidet der `--dev` Modus (`src/database/DatabaseConnection.ts`).
 
-```ts
-export const CONFIG_SCHEMAS: Record<string, IConfigSchema> = {
-    tempvoice: { options: OPTIONS },
-    emojis: {
-        pllogo: { type: "string" },
-        server_custom: { type: "object", entries: { type: "string" } },
-    },
-};
-```
+| Feld | Pflicht | Standard |
+|---|---|---|
+| `HOST` | ja | — |
+| `PORT` | nein | `3306` |
+| `USER` | ja | — |
+| `PASSWORD` | nein | `""` |
+| `NAME` | ja | — |
 
-`OPTION` und `OPTIONS` sind fertig exportiert und beschreiben eine Liste aus `{ name, description, value, emoji }` mit optionalem `channel_type` — das deckt fast jedes Feld dieser Dateien ab. Für alles andere:
+**Beide Sektionen müssen vorhanden sein**, auch wenn im Produktivbetrieb nur `DATABASE` benutzt wird. Geprüft wird beim Laden, nicht beim ersten Zugriff — eine fehlende `DEV_DATABASE` fällt also sofort auf und nicht erst beim nächsten `--dev` Start.
 
-| Feld | Bedeutung |
+Das Passwort steht hier und nicht in der `.env`: Host, User und Passwort gehören zusammen, getrennt einzurichten ist eine Fehlerquelle mehr. Beide Dateien stehen ohnehin in der `.gitignore`. Mehr zur Verbindung in [Database.md](Database.md).
+
+---
+
+## Entwicklung
+
+| Feld | Wofür |
 |---|---|
-| `type` | `string`, `number`, `boolean`, `object`, `array` |
-| `optional` | Fehlen ist erlaubt |
-| `of` | Bei `array`: das Schema jedes Elements |
-| `shape` | Bei `object`: die bekannten Schlüssel |
-| `entries` | Bei `object`: ein Schema für **alle** Werte, wenn die Schlüssel frei sind |
+| `DEV_GUILD_ID` | Server, auf dem Commands im `--dev` Modus sofort registriert werden — global dauert die Registrierung bis zu eine Stunde |
+| `DEV_USER_IDs` | Wer `developerOnly`-Commands ausführen darf (`src/utils/permissions.ts`) |
 
-Unbekannte Schlüssel sind erlaubt — eine Datei darf mehr enthalten, als das Schema kennt. Eine Datei ohne Schema-Eintrag läuft nur durch die Grundprüfung; du kannst also erst die JSON anlegen und das Schema nachreichen.
+`DEV_GUILD_ID` ist auch dann Pflicht, wenn nie im Dev-Modus gestartet wird.
 
-Fehler benennen den genauen Pfad:
-
-```
-tempvoice.json ist ungültig: tempvoice[0].options[0].emoji fehlt
-```
-
----
-
-## Dev-Overlays
-
-Eine Datei `<name>.dev.json` wird im `--dev` Modus über `<name>.json` gelegt. In Produktion wird sie ignoriert.
+### IDs immer als String
 
 ```json
-// tempvoice.json
-[{ "pagination": false, "options": [ ...20 Einträge... ] }]
-
-// tempvoice.dev.json
-[{ "options": [ { "name": "Test", "description": "d", "value": "test", "emoji": "🧪" } ] }]
+"DEV_USER_IDs": ["1059621019947634739"]     ✅
+"DEV_USER_IDs": [1059621019947634739]       ❌ wird zu 1059621019947634700
 ```
 
-Im Dev-Modus hat `tempvoice` dann eine Option, `pagination` bleibt `false`.
-
-- Objekte werden tief gemischt, Felder aus dem Overlay gewinnen
-- **Arrays werden ersetzt, nicht gemischt** — sonst wüsste niemand, ob Element 3 ergänzt oder überschrieben wird
-- Einträge auf oberster Ebene werden nach Position gemischt
-
-Geprüft wird erst nach dem Mischen: ein Overlay, das ein Pflichtfeld herauswirft, fällt beim Start auf.
+Discord-Snowflakes sind größer als `Number.MAX_SAFE_INTEGER`. Als JSON-Zahl geschrieben rundet der Parser sie — **still**, ohne Fehlermeldung. Die ID passt danach zu niemandem mehr. Das gilt für jede ID in dieser Datei.
 
 ---
 
-## Neu laden
+## Server
 
-```ts
-await config.Reload("tempvoice");   // eine Datei
-await config.Reload();              // alle
-```
+| Feld | Wofür |
+|---|---|
+| `SERVER_PORT` | Port des Fastify-Servers |
+| `SERVER_PUBLIC_URL` | Domain, unter der der Server von außen erreichbar ist. Baut Bild- und Redirect-URLs |
+| `SERVER_JWT_EXPIRES_IN` | Standard-Gültigkeit neuer API-Tokens |
+| `SERVER_RATE_LIMIT_MAX` | Anfragen pro Fenster und IP |
+| `SERVER_RATE_LIMIT_WINDOW` | Länge des Fensters |
 
-`Reload` löst die Change-Handler aus:
+`SERVER_PUBLIC_URL` wird im `--dev` Modus ignoriert — dort ist die Basis-URL immer `http://localhost:<SERVER_PORT>`. Ein abschließender `/` wird abgeschnitten, beide Schreibweisen sind also in Ordnung.
 
-```ts
-const off = config.OnChange((name) => {
-    if (name === "setupsettings") this.RebuildPanel();
-});
+Das JWT-Secret steht als einziger Server-Wert in der `.env`, siehe [Server.md](Server.md).
 
-off();   // abmelden
-```
+### Zwei Zeitformate
 
-Ein Handler, der wirft, wird geloggt und hält die anderen nicht auf.
+Die beiden Zeitangaben werden von **verschiedenen** Parsern gelesen und sind nicht austauschbar:
 
-### Watch
+| Feld | Format | Beispiele |
+|---|---|---|
+| `SERVER_JWT_EXPIRES_IN` | `<Zahl><Einheit>`, Einheit `ms` `s` `m` `h` `d` `w` | `30d`, `12h`, `90m` |
+| `SERVER_RATE_LIMIT_WINDOW` | ausgeschrieben, für `@fastify/rate-limit` | `1 minute`, `30 seconds` |
 
-```ts
-config.Watch();      // true, wenn neu gestartet; false, wenn schon aktiv
-config.Unwatch();
-config.IsWatching;
-```
-
-`Watch()` hängt sich mit `fs.watch` an den Ordner. Änderungen werden 250 ms gesammelt — Editoren schreiben oft mehrfach hintereinander — und lösen dann `Reload(name)` für die betroffene Datei aus, samt Change-Handlern. Eine Änderung an `<name>.dev.json` lädt ebenfalls `<name>` neu.
-
-`BotClient` startet das automatisch im `--dev` Modus. In Produktion bleibt es aus: dort ändert sich nichts im laufenden Betrieb, und ein Watcher wäre nur eine offene Datei mehr.
-
-Der Watcher ist `unref()`-t und hält den Prozess beim Herunterfahren nicht offen.
+`"SERVER_JWT_EXPIRES_IN": "1 minute"` wird nicht erkannt und fällt auf die eingebaute Standard-Gültigkeit zurück.
 
 ---
 
-## Der Rest der API
+## OAuth
 
-```ts
-config.Root         // der Ordner, aus dem gelesen wird
-config.Size         // Anzahl geladener Konfigurationen
-config.Keys         // ["emojis", "setupsettings", ...]
-config.IsLoaded     // true nach Initialize()
-config.IsWatching
-```
+| Feld | Wofür |
+|---|---|
+| `OAUTH_GUILD_ID` | Server, dem ein Nutzer nach dem Login automatisch beitritt |
+| `OAUTH_ROLE_ID` | Rolle, die er dabei bekommt |
 
-Für Tests nimmt der Konstruktor einen zweiten Parameter: `new ConfigService(client, "/pfad/zum/ordner")`.
+Beide sind optional. Fehlt `OAUTH_GUILD_ID` oder ist es keine gültige Snowflake, entfällt der Auto-Join und der Bot protokolliert eine Warnung. Fehlt nur `OAUTH_ROLE_ID`, tritt der Nutzer bei und bekommt keine Rolle. Der Bot startet in beiden Fällen normal.
+
+Der Bot muss auf dem Server unter `OAUTH_GUILD_ID` sein und die Rolle unter seiner eigenen höchsten Rolle stehen — sonst lehnt Discord die Vergabe ab.
 
 ---
 
-## Fallen
+## Wenn etwas nicht stimmt
 
-- **Eine kaputte Datei fehlt einfach.** Sie reißt den Start nicht ab, aber `Get("x")` liefert danach `null`. Beim Start steht im Log, welche und warum.
-- **Eingefrorene Ergebnisse nicht sortieren.** Erst kopieren (`[...options]`), dann sortieren.
-- **Arrays im Overlay ersetzen komplett.** Wer im Dev-Modus eine Option ergänzen will, muss die ganze Liste hinschreiben.
-- **`Watch` ist kein Ersatz für einen Neustart**, wenn sich die Struktur ändert: läuft die neue Datei nicht durch das Schema, bleibt die alte Fassung nicht stehen — der Schlüssel ist danach weg. Das Log sagt es, aber das Panel läuft dann ins Leere.
-- **Index in einer Options-Liste ist keine ID.** Für Select-Menüs immer `value` benutzen, sonst verschiebt sich alles, sobald jemand eine Zeile einfügt.
+| Meldung | Ursache |
+|---|---|
+| `config.json fehlt - kopiere config.example.json nach config.json.` | Datei nicht vorhanden oder falsches Arbeitsverzeichnis |
+| `config.json enthält kein gültiges JSON: …` | Syntaxfehler, meist ein Komma zu viel oder ein Kommentar |
+| `config.json: "DATABASE" fehlt oder ist kein Objekt.` | Sektion fehlt oder ist ein Array/String |
+| `config.json: "HOST" fehlt oder ist kein Text.` | Pflichtfeld fehlt, ist leer oder keine Zeichenkette |
 
-Abgesichert mit `npm test`, einzeln `npx tsx src/tests/ConfigService.test.ts`. Der Test arbeitet in einem temporären Ordner und läuft am Ende einmal gegen `src/config` — sobald dort echte Dateien liegen, fällt eine kaputte davon im Testlauf auf und nicht erst im Betrieb.
+Alle vier fliegen **vor** dem ersten Verbindungsaufbau, im Konstruktor von `BotClient`.
+
+JSON kennt keine Kommentare. `//` oder `#` in der Datei sind ein Syntaxfehler, kein Hinweistext.
+
+### Zwei stille Fallen
+
+```json
+"SERVER_PORT": "3001"       // ❌ String statt Zahl → wird still zu 3000
+"SERVER_PUBLIC_URL": ""     // ❌ leer → wird still zu http://localhost:3000
+```
+
+Zahlenfelder akzeptieren nur echte JSON-Zahlen, alles andere fällt kommentarlos auf den Standard zurück. Leere Textfelder gelten als *nicht gesetzt* — bei Pflichtfeldern gibt das einen Fehler, bei den übrigen den Standardwert. Wer einen Wert setzt und ihn nicht wiederfindet, prüft zuerst diese beiden Punkte.
+
+---
+
+## Test
+
+```bash
+npx tsx src/tests/Config.test.ts
+```
+
+Prüft in einem Wegwerf-Verzeichnis, dass `.env` und `config.json` korrekt zusammenfinden, und dass die Fehlerfälle oben verständliche Meldungen erzeugen.
