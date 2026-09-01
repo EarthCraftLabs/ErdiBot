@@ -81,8 +81,14 @@ export default function BuildTicketMessage(
 export function BuildTicketPanel(config: ITicketConfig): MessageCreateOptions {
     const builder = new ComponentV2Builder({ accentColor: config.accent as ColorResolvable })
         .title(config.panelTitle)
-        .separator()
-        .text(config.panelMessage);
+        .separator();
+
+    // Mit Thumbnail wird aus dem Text eine Section - nur die trägt ein Bild daneben.
+    if (config.panelThumbnail) {
+        builder.section(config.panelMessage, { type: "thumbnail", url: config.panelThumbnail });
+    } else {
+        builder.text(config.panelMessage);
+    }
 
     if (config.supportHours) builder.subtext(`🕓 **Support-Zeiten:** ${config.supportHours}`);
     if (config.maxOpenTickets > 0) {

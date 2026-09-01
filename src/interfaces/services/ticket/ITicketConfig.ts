@@ -19,7 +19,6 @@ export interface ITicketConfig {
 
     panelChannelId: string | null;
     panelMessageId: string | null;
-    transcriptChannelId: string | null;
     waitroomChannelId: string | null;
 
     supportRoleIds: string[];
@@ -29,6 +28,7 @@ export interface ITicketConfig {
     panelTitle: string;
     panelMessage: string;
     panelImage: string | null;
+    panelThumbnail: string | null;
     accent: string;
 
     categories: ITicketCategory[];

@@ -20,8 +20,8 @@ import { ISetupState, SetupView } from "../../interfaces/services/ticket/ITicket
 import { ITicketCategory } from "../../interfaces/services/ticket/ITicketConfig";
 import ITicketBlacklist from "../../interfaces/services/ticket/ITicketBlacklist";
 import TicketMode from "../../enums/TicketMode";
+import LogType from "../../enums/LogType";
 import {
-    ALL_ROLES,
     Clamp,
     DefaultCategory,
     IsPriority,
@@ -74,7 +74,7 @@ export default class TicketSetupHandler extends Event {
         const state = SetupStates.get(interaction.message.id);
 
         if (!state) {
-            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/tickets` erneut."));
+            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."));
 
             return;
         }
@@ -98,10 +98,18 @@ export default class TicketSetupHandler extends Event {
             return this.Apply(interaction, state);
         }
 
+        if (action.startsWith("gallery:")) {
+            state.image = action.slice(8) === "thumbnail" ? "thumbnail" : "panel";
+            state.view = "gallery";
+
+            return this.Apply(interaction, state);
+        }
+
         if (VIEWS.includes(action as SetupView)) {
             state.view = action as SetupView;
             state.picking = null;
             state.kind = null;
+            state.image = null;
 
             if (action === "categories") state.draft = null;
 
@@ -138,11 +146,20 @@ export default class TicketSetupHandler extends Event {
                 this.DeleteCategory(state);
                 break;
 
-            case "allroles":
+            case "emojiprev":
+                state.emojiPage = Math.max(0, state.emojiPage - 1);
+                break;
+
+            case "emojinext":
+                state.emojiPage += 1;
+                break;
+
+            case "clearimage":
                 this.Change(state, () => {
-                    const category = ActiveCategory(state);
-                    if (category) category.roleId = ALL_ROLES;
+                    if (state.image === "thumbnail") state.config.panelThumbnail = null;
+                    else state.config.panelImage = null;
                 });
+                state.notice = "🗑️ Bild entfernt.";
                 break;
 
             default:
@@ -208,6 +225,18 @@ export default class TicketSetupHandler extends Event {
                 });
                 break;
 
+            case "emoji":
+                this.Change(state, () => {
+                    const category = ActiveCategory(state);
+                    const emoji = this.client.guilds.cache.get(state.guildId)?.emojis.cache.get(value);
+
+                    if (category && emoji) category.emoji = emoji.toString();
+                });
+                break;
+
+            case "image":
+                return this.SetImage(interaction, state, value);
+
             case "unblock":
                 return this.Unblock(interaction, state, value);
 
@@ -227,7 +256,7 @@ export default class TicketSetupHandler extends Event {
 
         if (!state) {
             await interaction.reply({
-                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/tickets` erneut."),
+                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."),
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
 
@@ -246,6 +275,7 @@ export default class TicketSetupHandler extends Event {
                 const color = read("accent").toUpperCase();
 
                 state.config.panelImage = read("image") || null;
+                state.config.panelThumbnail = read("thumbnail") || null;
                 if (HEX.test(color)) state.config.accent = color;
                 else if (read("accent")) state.notice = "⚠️ Die Farbe muss wie `#5865F2` aussehen — ignoriert.";
             }
@@ -302,8 +332,23 @@ export default class TicketSetupHandler extends Event {
         }
 
         if (action === "editimage") {
-            return this.Show(interaction, "image", "Bild & Farbe", [
-                { id: "image", label: "Bild-URL", value: config.panelImage ?? "", max: 255, required: false },
+            return this.Show(interaction, "image", "Bilder & Farbe", [
+                {
+                    id: "image",
+                    label: "Bild-URL",
+                    value: config.panelImage ?? "",
+                    description: "Steht unter dem Text — leer lassen entfernt es",
+                    max: 255,
+                    required: false,
+                },
+                {
+                    id: "thumbnail",
+                    label: "Thumbnail-URL",
+                    value: config.panelThumbnail ?? "",
+                    description: "Kleines Bild neben dem Text",
+                    max: 255,
+                    required: false,
+                },
                 { id: "accent", label: "Akzentfarbe (#RRGGBB)", value: config.accent, max: 7, required: false },
             ]);
         }
@@ -380,7 +425,6 @@ export default class TicketSetupHandler extends Event {
             }
 
             if (target === "panel") state.config.panelChannelId = channelId;
-            if (target === "transcript") state.config.transcriptChannelId = channelId;
             if (target === "waitroom") state.config.waitroomChannelId = channelId;
         });
 
@@ -400,13 +444,37 @@ export default class TicketSetupHandler extends Event {
             }
 
             if (target === "panel") state.config.panelChannelId = null;
-            if (target === "transcript") state.config.transcriptChannelId = null;
             if (target === "waitroom") state.config.waitroomChannelId = null;
         });
 
         state.picking = null;
         state.kind = null;
         state.notice = "🗑️ Kanal entfernt.";
+    }
+
+    private async SetImage(
+        interaction: MessageComponentInteraction,
+        state: ISetupState,
+        imageId: string
+    ): Promise<void> {
+        const image = await this.client.galleryService.GetImage(imageId);
+
+        if (!image) {
+            state.notice = "⚠️ Dieses Bild gibt es nicht mehr.";
+
+            return this.Apply(interaction, state);
+        }
+
+        this.Change(state, () => {
+            if (state.image === "thumbnail") state.config.panelThumbnail = image.url;
+            else state.config.panelImage = image.url;
+        });
+
+        state.view = "panel";
+        state.image = null;
+        state.notice = `🖼️ \`${image.file}\` übernommen.`;
+
+        await this.Apply(interaction, state);
     }
 
     private async NewCategory(interaction: MessageComponentInteraction, state: ISetupState): Promise<void> {
@@ -462,11 +530,15 @@ export default class TicketSetupHandler extends Event {
     }
 
     private async Reload(interaction: MessageComponentInteraction, state: ISetupState): Promise<void> {
+        const log = await this.client.loggingService.Target(state.guildId, LogType.TICKET);
+
         state.config = await this.client.ticketService.Config(state.guildId);
+        state.logChannelId = log?.channelId ?? null;
         state.dirty = false;
         state.draft = null;
         state.picking = null;
         state.kind = null;
+        state.image = null;
         state.view = "home";
 
         await this.Apply(interaction, state);
@@ -576,7 +648,7 @@ export default class TicketSetupHandler extends Event {
         interaction: MessageComponentInteraction | ModalSubmitInteraction,
         state: ISetupState
     ): Promise<void> {
-        const view = RenderSetup(this.client, state);
+        const view = await RenderSetup(this.client, state);
 
         if (interaction.isModalSubmit() || interaction.deferred || interaction.replied) {
             await interaction.editReply({ ...view, flags: MessageFlags.IsComponentsV2 });
@@ -591,7 +663,9 @@ export default class TicketSetupHandler extends Event {
         interaction: MessageComponentInteraction | ModalSubmitInteraction,
         state: ISetupState
     ): Promise<void> {
-        await interaction.editReply({ ...RenderSetup(this.client, state), flags: MessageFlags.IsComponentsV2 });
+        const view = await RenderSetup(this.client, state);
+
+        await interaction.editReply({ ...view, flags: MessageFlags.IsComponentsV2 });
     }
 
     private Notice(title: string, message: string) {

@@ -93,7 +93,7 @@ export default class NotifierHandler extends Event {
         const state = PanelStates.get(interaction.message.id);
 
         if (!state) {
-            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/notifier` erneut."));
+            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."));
 
             return;
         }
@@ -255,7 +255,7 @@ export default class NotifierHandler extends Event {
 
         if (!state) {
             await interaction.reply({
-                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/notifier` erneut."),
+                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."),
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
 

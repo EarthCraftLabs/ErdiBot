@@ -1,6 +1,6 @@
 # Notifier
 
-Meldet neue Streams und Videos von **YouTube** und **Twitch** in einen Discord-Kanal. Eingerichtet wird alles über `/notifier` — ein ComponentV2-Panel, ohne eine einzige Zeile JSON von Hand.
+Meldet neue Streams und Videos von **YouTube** und **Twitch** in einen Discord-Kanal. Eingerichtet wird alles über `/setup` → **🔔 Notifier** — ein ComponentV2-Panel, ohne eine einzige Zeile JSON von Hand.
 
 Zugriff über den Client: `this.client.notifierService`.
 
@@ -28,8 +28,10 @@ Zugriff über den Client: `this.client.notifierService`.
 ## Einrichten
 
 ```
-/notifier
+/setup
 ```
+
+Im Menü **🔔 Notifier** wählen. Mit **⬅️ Setup** geht es von jeder Ansicht wieder zur Auswahl zurück.
 
 1. **Kanal hinzufügen** → Plattform wählen
 2. Link oder Handle eingeben. Der Bot löst daraus den echten Kanal auf und übernimmt Name und Profilbild
@@ -178,7 +180,7 @@ Alle Keys stehen in der `.env`, siehe [Environment.md](Environment.md). Fehlt ei
 | `src/builder/NotifierPanel.ts` | Das Setup-Panel |
 | `src/builder/NotifierMessage.ts` | Die Meldung selbst |
 | `src/events/notifier/NotifierHandler.ts` | Buttons, Selects, Modals |
-| `src/commands/admin/Notifier.ts` | `/notifier` |
+| `src/commands/admin/Setup.ts` | `/setup` |
 | `src/runnables/NotifierPoll.ts` | Der Minuten-Takt |
 | `src/constants/Notifier.ts` | Standards, Normalisierung, Regeln |
 | `src/database/models/NotifierSubscription.ts` | Die Tabelle |

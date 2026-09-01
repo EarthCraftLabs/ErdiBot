@@ -79,7 +79,7 @@ export default class WelcomeHandler extends Event {
         const state = PanelStates.get(interaction.message.id);
 
         if (!state) {
-            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/welcome` erneut."));
+            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."));
 
             return;
         }
@@ -587,7 +587,7 @@ export default class WelcomeHandler extends Event {
 
         if (!state) {
             await interaction.reply({
-                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/welcome` erneut."),
+                ...this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."),
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
 

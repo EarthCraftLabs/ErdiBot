@@ -28,7 +28,7 @@ Die Sessions selbst kommen vom `ChronicleLogger`: `getSessionHistory()`, `getSes
 /devlogs
 ```
 
-`developerOnly: true` — die Freigabe kommt aus `DEV_USER_IDs` in der `config.json`, geprüft vom `CommandHandler`. Zusätzlich steht der Command auf `Administrator`, damit er in fremden Servern gar nicht erst auftaucht.
+`developerOnly: true` — die Freigabe kommt allein aus `DEV_USER_IDs` in der `config.json`, geprüft vom `CommandHandler`. Eine Server-Berechtigung setzt der Command bewusst nicht: Entwickler sind keine Administratoren, und Developer-Commands werden ohnehin nur in der `DEV_GUILD_ID` registriert.
 
 Die Antwort ist **ephemeral**: nur wer den Command ausführt, sieht das Panel und kann seine Buttons bedienen. Ein eigener Rechte-Check im Handler wäre doppelt gemoppelt — Discord lässt niemand anderen an eine ephemere Nachricht.
 

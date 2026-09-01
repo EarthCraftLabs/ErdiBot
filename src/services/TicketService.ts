@@ -60,7 +60,6 @@ const THREAD_PERMISSIONS = [
 export interface ITranscriptResult {
     transcriptId: string;
     url: string;
-    buffer: Buffer;
     messageCount: number;
     participants: string[];
 }
@@ -507,7 +506,6 @@ export default class TicketService {
         return {
             transcriptId,
             url: `${this.client.server.BaseURL}/transcripts/${transcriptId}`,
-            buffer,
             messageCount: messages.length,
             participants,
         };
@@ -535,17 +533,8 @@ export default class TicketService {
     async Close(channel: TextChannel | ThreadChannel, ticket: ITicket): Promise<void> {
         await this.Patch(ticket, { status: TicketStatus.CLOSED, closedAt: new Date() });
 
-        // Forum-Beiträge werden archiviert und gesperrt statt gelöscht: der Verlauf bleibt
-        // durchsuchbar. Ein Kategorie-Kanal muss weg, sonst wächst die Kategorie endlos.
-        if (channel.isThread()) {
-            const thread = channel as ThreadChannel;
-
-            await thread.setLocked(true, "Ticket geschlossen").catch(() => null);
-            await thread.setArchived(true, "Ticket geschlossen").catch(() => null);
-
-            return;
-        }
-
+        // Kanal wie Forum-Beitrag verschwinden - der Verlauf steht im Transcript, das
+        // reicht. Ein bleibender Beitrag wäre nur ein zweiter Ort für dieselben Daten.
         await channel.delete("Ticket geschlossen").catch((error) => logger.debug(`[Ticket] Löschen: ${error}`));
     }
 

@@ -37,7 +37,7 @@ Danach in der `.env` Token und Passwörter eintragen. `.env` steht in der `.giti
 | `TWITCH_CLIENT_ID` | nein | Notifier · Twitch Application |
 | `TWITCH_CLIENT_SECRET` | nein | Notifier · Twitch Application |
 
-Fehlt eine Pflichtvariable, startet der Bot **nicht** und nennt den Namen. Fehlen die Notifier-Keys, startet er normal — die betroffene Plattform meldet sich im `/notifier` Panel als *nicht konfiguriert*.
+Fehlt eine Pflichtvariable, startet der Bot **nicht** und nennt den Namen. Fehlen die Notifier-Keys, startet er normal — die betroffene Plattform meldet sich im Notifier-Panel unter `/setup` als *nicht konfiguriert*.
 
 ### Werte immer in Anführungszeichen
 

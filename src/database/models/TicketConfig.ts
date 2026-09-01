@@ -15,7 +15,6 @@ const TicketConfig: ITableDefinition<ITicketConfig> = {
 
         panelChannelId: { type: ColumnType.STRING, length: 20, nullable: true, blankAsNull: true },
         panelMessageId: { type: ColumnType.STRING, length: 20, nullable: true, blankAsNull: true },
-        transcriptChannelId: { type: ColumnType.STRING, length: 20, nullable: true, blankAsNull: true },
         waitroomChannelId: { type: ColumnType.STRING, length: 20, nullable: true, blankAsNull: true },
 
         supportRoleIds: { type: ColumnType.JSON },
@@ -25,6 +24,7 @@ const TicketConfig: ITableDefinition<ITicketConfig> = {
         panelTitle: { type: ColumnType.STRING, length: 100 },
         panelMessage: { type: ColumnType.TEXT },
         panelImage: { type: ColumnType.STRING, length: 255, nullable: true, blankAsNull: true },
+        panelThumbnail: { type: ColumnType.STRING, length: 255, nullable: true, blankAsNull: true },
         accent: { type: ColumnType.CHAR, length: 7 },
 
         categories: { type: ColumnType.JSON },

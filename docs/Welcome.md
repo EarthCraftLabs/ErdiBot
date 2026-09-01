@@ -10,7 +10,8 @@ Zugriff über den Client: `this.client.welcomeService`.
 
 | Datei | Aufgabe |
 |---|---|
-| `src/commands/admin/Welcome.ts` | `/welcome` — öffnet das Setup |
+| `src/commands/admin/Setup.ts` | `/setup` — öffnet die Auswahl |
+| `src/builder/SetupPanel.ts` | Das Auswahl-Menü |
 | `src/services/WelcomeService.ts` | Konfiguration laden/speichern, Schriften registrieren, Karte rendern |
 | `src/builder/WelcomePanel.ts` | Zeichnet das Setup-Panel, hält dessen Zustand |
 | `src/builder/WelcomeMessage.ts` | Baut die fertige Nachricht — für Testlauf **und** echten Beitritt |
@@ -38,8 +39,10 @@ Der Modus entscheidet auch, ob das Panel überhaupt eine Vorschau rendert: bei `
 ## Das Setup
 
 ```
-/welcome
+/setup
 ```
+
+Im Menü **👋 Willkommen** wählen. Mit **⬅️ Setup** geht es von jeder Ansicht wieder zur Auswahl zurück.
 
 `Administrator` vorausgesetzt, die Antwort ist ephemeral. Das Panel arbeitet auf einer **Arbeitskopie**: alles, was du änderst, landet erst mit **💾 Speichern** in der Datenbank. **↩️ Verwerfen** holt den gespeicherten Stand zurück, **🗑️ Zurücksetzen** löscht die Zeile und stellt die Standardkarte her.
 

@@ -1,8 +1,13 @@
-import { ColorResolvable, Guild, MessageCreateOptions, MessageFlags, User } from "discord.js";
-import ComponentV2Builder from "./ComponentV2Builder";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Guild, MessageCreateOptions, User } from "discord.js";
 import { ITicket } from "../interfaces/services/ticket/ITicket";
 import { ITranscriptResult } from "../services/TicketService";
+import { ICardRow, ITranscriptCard, RenderTranscriptCard } from "./TranscriptCard";
 import { Number4, Priority } from "../constants/Ticket";
+
+// Der Server ist deutsch, also steht die Karte fest auf deutscher Zeit - sonst zeigt sie
+// die Zeitzone des Hosts, und die hat mit dem Ticket nichts zu tun.
+const TIMEZONE = "Europe/Berlin";
+const CARD_FILE = "ticket-abschluss.png";
 
 // Wie lange ein Ticket offen war, in verständlicher Form statt in Millisekunden.
 export function Duration(from: Date, to: Date): string {
@@ -23,92 +28,152 @@ export function Duration(from: Date, to: Date): string {
 // Wie lange es gedauert hat, bis jemand das Ticket übernommen hat. Die Kennzahl,
 // nach der ein Support-Team am ehesten gefragt wird.
 function Response(ticket: ITicket): string {
-    if (!ticket.claimedById) return "_nie beansprucht_";
+    if (!ticket.claimedById) return "nie beansprucht";
     if (!ticket.claimedAt) return "übernommen";
 
     return `nach ${Duration(ticket.createdAt, ticket.claimedAt)} übernommen`;
 }
 
-interface ITranscriptContext {
+// Ein Bild kann keine Erwähnung auflösen - im Gegensatz zur alten Textnachricht muss
+// hier der Name stehen, den Discord sonst eingesetzt hätte.
+function Name(user: User | null, fallback: string): string {
+    return user ? `@${user.displayName}` : fallback;
+}
+
+function Stamp(date: Date): string {
+    const options: Intl.DateTimeFormatOptions = { timeZone: TIMEZONE };
+
+    const day = date.toLocaleDateString("de-DE", { ...options, day: "2-digit", month: "long", year: "numeric" });
+    const time = date.toLocaleTimeString("de-DE", { ...options, hour: "2-digit", minute: "2-digit" });
+
+    // Getrennt geholt, weil toLocaleString sonst ein "um" dazwischen setzt.
+    return `${day} ${time}`;
+}
+
+export interface ITranscriptContext {
     guild: Guild;
     ticket: ITicket;
     closedBy: User;
+    creator: User | null;
+    handler: User | null;
     transcript: ITranscriptResult;
     channelName: string;
-    reason: string | null;
+    reason: string;
 }
 
-function Body(context: ITranscriptContext, forCreator: boolean): ComponentV2Builder {
-    const { guild, ticket, closedBy, transcript } = context;
+// Exportiert, weil die Zahlen sonst nur noch im PNG stünden - dort prüft sie kein Test.
+export function CardLayout(context: ITranscriptContext, forCreator: boolean): ITranscriptCard {
+    const { ticket, closedBy, transcript } = context;
 
     const priority = Priority(ticket.priority);
     const closedAt = ticket.closedAt ?? new Date();
-    const opened = Math.floor(ticket.createdAt.getTime() / 1000);
-    const closed = Math.floor(closedAt.getTime() / 1000);
+    const number = `#${Number4(ticket.ticketNumber)}`;
 
-    const builder = new ComponentV2Builder({ accentColor: priority.accent as ColorResolvable })
-        .title(
-            forCreator ? "🔒 Dein Ticket wurde geschlossen" : `🔒 Ticket #${Number4(ticket.ticketNumber)} geschlossen`,
-            forCreator ? guild.name : context.channelName
-        )
-        .separator();
+    const left: ICardRow[] = [
+        { emoji: "🎫", tint: "#E8A33D", label: "Nummer", value: number },
+        { emoji: "📁", tint: "#4F9BFF", label: "Kategorie", value: ticket.categoryName, style: "badge", color: "#A78BFA" },
+        { emoji: "⚡", tint: priority.accent, label: "Priorität", value: priority.label, style: "badge" },
+        {
+            emoji: "👤",
+            tint: "#4F9BFF",
+            label: "Ersteller",
+            value: Name(context.creator, "unbekannt"),
+            style: context.creator ? "mention" : "muted",
+            id: ticket.creatorId,
+        },
+        {
+            emoji: "🙋",
+            tint: "#F5A623",
+            label: "Bearbeiter",
+            value: ticket.claimedById ? Name(context.handler, "unbekannt") : "niemand",
+            style: ticket.claimedById && context.handler ? "mention" : "muted",
+            id: ticket.claimedById ?? undefined,
+        },
+        {
+            emoji: "🔒",
+            tint: "#F5C242",
+            label: "Geschlossen von",
+            value: `@${closedBy.displayName}`,
+            style: "mention",
+            id: closedBy.id,
+        },
+    ];
 
-    builder.text(
-        `🎫 **Nummer:** \`#${Number4(ticket.ticketNumber)}\`\n` +
-            `📁 **Kategorie:** \`${ticket.categoryName}\`\n` +
-            `⚡ **Priorität:** ${priority.emoji} ${priority.label}\n` +
-            `👤 **Ersteller:** <@${ticket.creatorId}>\n` +
-            `🙋 **Bearbeiter:** ${ticket.claimedById ? `<@${ticket.claimedById}>` : "_niemand_"}\n` +
-            `🔒 **Geschlossen von:** <@${closedBy.id}>`
-    );
+    const right: ICardRow[] = [
+        { emoji: "📅", tint: "#A78BFA", label: "Geöffnet", value: Stamp(ticket.createdAt) },
+        { emoji: "✅", tint: "#3FB950", label: "Geschlossen", value: Stamp(closedAt) },
+        { emoji: "⏱️", tint: "#F778BA", label: "Laufzeit", value: Duration(ticket.createdAt, closedAt) },
+        { emoji: "💬", tint: "#4F9BFF", label: "Nachrichten", value: String(transcript.messageCount) },
+        {
+            emoji: "👥",
+            tint: "#56D4C0",
+            label: "Beteiligt",
+            value: `${transcript.participants.length} Person(en)`,
+        },
+        {
+            emoji: "📝",
+            tint: "#F5A623",
+            label: "Bearbeitung",
+            value: Response(ticket),
+            style: ticket.claimedById ? "plain" : "muted",
+        },
+    ];
 
-    builder.separator({ divider: false });
-
-    // Die Zahlen, die man beim Nachschlagen wirklich sucht: wie lange, wie viel,
-    // wie viele Beteiligte. Im JS-Bot stand hier nur Datum und Uhrzeit.
-    builder.text(
-        `🕐 **Geöffnet:** <t:${opened}:f>\n` +
-            `🕑 **Geschlossen:** <t:${closed}:f>\n` +
-            `⏱️ **Laufzeit:** ${Duration(ticket.createdAt, closedAt)}\n` +
-            `💬 **Nachrichten:** ${transcript.messageCount}\n` +
-            `👥 **Beteiligt:** ${transcript.participants.length} Person(en)\n` +
-            `🙋 **Bearbeitung:** ${Response(ticket)}`
-    );
-
-    const extras = [
-        ticket.staffNotes.length > 0 ? `📝 ${ticket.staffNotes.length} Team-Notiz(en)` : null,
-        ticket.addedUsers.length > 0 ? `➕ ${ticket.addedUsers.length} hinzugefügte(r) Nutzer` : null,
-        ticket.anonymous ? "🛡️ anonymer Team-Modus war aktiv" : null,
-        ticket.frozen ? "🥶 war eingefroren" : null,
-        ticket.meeting ? "📅 Termin war vereinbart" : null,
-    ].filter(Boolean) as string[];
-
-    if (extras.length > 0) builder.subtext(extras.join(" · "));
-    if (context.reason) builder.subtext(`📋 **Grund:** ${context.reason}`);
-
-    return builder;
+    return {
+        title: forCreator ? "Dein Ticket wurde" : `Ticket ${number}`,
+        highlight: "geschlossen",
+        accent: priority.accent,
+        statusEmoji: "🔒",
+        badge: ticket.categoryName,
+        subline: forCreator ? `${context.guild.name}  ·  Kategorie:` : `${number}  ·  Kategorie:`,
+        left,
+        right,
+        transcriptId: transcript.transcriptId,
+        reason: context.reason,
+    };
 }
 
-// Für den Transcript-Kanal: mit Team-Notizen, Beteiligten und der HTML-Datei im Anhang.
-export function BuildTranscriptLog(context: ITranscriptContext): MessageCreateOptions {
-    const builder = Body(context, false);
+// Nur die Karte: die HTML-Datei würde Discord als Code-Vorschau ausrollen. Der Verlauf
+// liegt auf dem Webserver, der Knopf führt hin.
+async function Files(context: ITranscriptContext, forCreator: boolean) {
+    return [{ attachment: await RenderTranscriptCard(CardLayout(context, forCreator)), name: CARD_FILE }];
+}
+
+// Der gemalte Balken auf der Karte ist Bild, kein Knopf - der echte steht darunter.
+function Link(url: string): ActionRowBuilder<ButtonBuilder> {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(url).setLabel("Im Browser öffnen").setEmoji("🌐")
+    );
+}
+
+// Für den Ticket-Log: mit Team-Notizen, Beteiligten und der HTML-Datei im Anhang.
+export async function BuildTranscriptLog(context: ITranscriptContext): Promise<MessageCreateOptions> {
     const { ticket, transcript } = context;
 
+    const lines: string[] = [];
+
     if (transcript.participants.length > 0) {
-        builder.separator({ divider: false });
-        builder.subtext(
-            `Beteiligt: ${transcript.participants
+        lines.push(
+            `-# Beteiligt: ${transcript.participants
                 .slice(0, 15)
                 .map((id) => `<@${id}>`)
                 .join(", ")}${transcript.participants.length > 15 ? " …" : ""}`
         );
     }
 
-    // Team-Notizen sind intern - sie stehen im Transcript-Kanal, nie in der Nachricht
+    const extras = [
+        ticket.addedUsers.length > 0 ? `➕ ${ticket.addedUsers.length} hinzugefügte(r) Nutzer` : null,
+        ticket.anonymous ? "🛡️ anonymer Team-Modus war aktiv" : null,
+        ticket.frozen ? "🥶 war eingefroren" : null,
+        ticket.meeting ? "📅 Termin war vereinbart" : null,
+    ].filter(Boolean) as string[];
+
+    if (extras.length > 0) lines.push(`-# ${extras.join(" · ")}`);
+
+    // Team-Notizen sind intern - sie stehen im Ticket-Log, nie in der Nachricht
     // an den Ersteller.
     if (ticket.staffNotes.length > 0) {
-        builder.separator();
-        builder.text(
+        lines.push(
             `📝 **Team-Notizen**\n${ticket.staffNotes
                 .slice(0, 5)
                 .map((note) => `> **${note.staffName}:** ${note.note.slice(0, 200)}`)
@@ -116,43 +181,22 @@ export function BuildTranscriptLog(context: ITranscriptContext): MessageCreateOp
         );
     }
 
-    builder.separator();
-    builder.buttons(
-        { url: transcript.url, label: "Im Browser öffnen", emoji: "🌐" },
-        { url: `https://discord.com/channels/${ticket.guildId}`, label: "Zum Server", emoji: "🏠" }
-    );
-
-    builder.subtext(`Transcript-ID: \`${transcript.transcriptId}\` · die HTML-Datei hängt an dieser Nachricht.`);
-
     return {
-        components: [builder.build()],
-        files: [{ attachment: transcript.buffer, name: `ticket-${Number4(ticket.ticketNumber)}.html` }],
-        flags: MessageFlags.IsComponentsV2,
+        content: lines.length > 0 ? lines.join("\n").slice(0, 2000) : undefined,
+        files: await Files(context, false),
+        components: [Link(transcript.url)],
         allowedMentions: { parse: [] },
     };
 }
 
-// Für den Ersteller per Direktnachricht: derselbe Aufbau, ohne interne Notizen.
-export function BuildTranscriptDM(context: ITranscriptContext): MessageCreateOptions {
-    const builder = Body(context, true);
-
-    builder.separator();
-    builder.text(
-        "Falls dein Anliegen doch noch offen ist, öffne einfach ein neues Ticket — " +
-            "verlinke gern diese Nummer, dann ordnen wir es zu."
-    );
-
-    builder.buttons({ url: context.transcript.url, label: "Gesprächsverlauf ansehen", emoji: "🌐" });
-
+// Für den Ersteller per Direktnachricht: dieselbe Karte, ohne interne Notizen.
+export async function BuildTranscriptDM(context: ITranscriptContext): Promise<MessageCreateOptions> {
     return {
-        components: [builder.build()],
-        files: [
-            {
-                attachment: context.transcript.buffer,
-                name: `ticket-${Number4(context.ticket.ticketNumber)}.html`,
-            },
-        ],
-        flags: MessageFlags.IsComponentsV2,
+        content:
+            "Falls dein Anliegen doch noch offen ist, öffne einfach ein neues Ticket — " +
+            "verlinke gern diese Nummer, dann ordnen wir es zu.",
+        files: await Files(context, true),
+        components: [Link(context.transcript.url)],
         allowedMentions: { parse: [] },
     };
 }
