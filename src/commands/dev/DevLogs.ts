@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
 import BotClient from "../../client/BotClient";
 import Command from "../../structures/Command";
 import Category from "../../enums/Category";
@@ -14,10 +14,7 @@ export default class DevLogs extends Command {
             developerOnly: true,
         });
 
-        this.data = new SlashCommandBuilder()
-            .setName(this.name)
-            .setDescription(this.description)
-            .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+        this.data = new SlashCommandBuilder().setName(this.name).setDescription(this.description);
     }
 
     async Execute(interaction: ChatInputCommandInteraction): Promise<void> {

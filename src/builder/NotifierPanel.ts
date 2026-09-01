@@ -2,6 +2,7 @@ import { ChannelType, ColorResolvable } from "discord.js";
 import { LRUCache } from "lru-cache";
 import BotClient from "../client/BotClient";
 import ComponentV2Builder from "./ComponentV2Builder";
+import { HOME_BUTTON } from "./SetupPanel";
 import { ISelectEntryOptions } from "../interfaces/builder/IComponentV2Builder";
 import { INotifierPanelView, INotifierState } from "../interfaces/services/notifier/INotifierPanel";
 import INotifierSubscription, { Platform } from "../interfaces/services/notifier/INotifierSubscription";
@@ -130,6 +131,8 @@ function Home(builder: ComponentV2Builder, client: BotClient, state: INotifierSt
         { customId: `${PANEL_PREFIX}:status`, label: "Status", emoji: "📊", tone: "primary" },
         { customId: `${PANEL_PREFIX}:refresh`, label: "Neu laden", emoji: "🔄" }
     );
+
+    builder.buttons(HOME_BUTTON);
 
     if (entries.length >= MAX_ENTRIES) builder.subtext(`Mehr als ${MAX_ENTRIES} Kanäle gehen nicht.`);
 }

@@ -13,6 +13,7 @@ import {
     WelcomeLayer,
 } from "../interfaces/services/welcome/IWelcomeLayer";
 import { CONFIG_KEY, DefaultConfig, MAX_LAYERS } from "../constants/Welcome";
+import { HOME_BUTTON } from "./SetupPanel";
 
 export const PANEL_PREFIX = "welcome:panel";
 
@@ -111,6 +112,8 @@ function Home(builder: ComponentV2Builder, client: BotClient, state: IWelcomeSta
         { customId: `${PANEL_PREFIX}:refresh`, label: "Vorschau", emoji: "🔄" },
         { customId: `${PANEL_PREFIX}:reset`, label: "Zurücksetzen", emoji: "🗑️", tone: "danger" }
     );
+
+    builder.buttons(HOME_BUTTON);
 }
 
 function Card(builder: ComponentV2Builder, client: BotClient, state: IWelcomeState): void {

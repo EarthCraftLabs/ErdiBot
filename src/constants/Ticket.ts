@@ -151,7 +151,6 @@ export function DefaultConfig(guildId: string): ITicketConfig {
 
         panelChannelId: null,
         panelMessageId: null,
-        transcriptChannelId: null,
         waitroomChannelId: null,
 
         supportRoleIds: [],
@@ -163,6 +162,7 @@ export function DefaultConfig(guildId: string): ITicketConfig {
             "Du brauchst Hilfe? Wähle unten eine Kategorie und wir melden uns.\n\n" +
             "Bitte beschreibe dein Anliegen so genau wie möglich — das spart allen Zeit.",
         panelImage: null,
+        panelThumbnail: null,
         accent: "#5865F2",
 
         categories: [],
@@ -212,7 +212,6 @@ export function NormalizeConfig(raw: unknown, guildId: string): ITicketConfig {
 
         panelChannelId: Optional(source.panelChannelId, 20),
         panelMessageId: Optional(source.panelMessageId, 20),
-        transcriptChannelId: Optional(source.transcriptChannelId, 20),
         waitroomChannelId: Optional(source.waitroomChannelId, 20),
 
         supportRoleIds: Array.isArray(roles) ? roles.map(String).filter(Boolean).slice(0, 25) : [],
@@ -222,6 +221,7 @@ export function NormalizeConfig(raw: unknown, guildId: string): ITicketConfig {
         panelTitle: Text(source.panelTitle, fallback.panelTitle, MAX_PANEL_TITLE),
         panelMessage: Text(source.panelMessage, fallback.panelMessage, MAX_PANEL_MESSAGE),
         panelImage: Optional(source.panelImage, 255),
+        panelThumbnail: Optional(source.panelThumbnail, 255),
         accent: Color(source.accent, fallback.accent),
 
         categories: Array.isArray(categories)

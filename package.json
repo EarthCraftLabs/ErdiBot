@@ -26,7 +26,7 @@
     "dev": "tsx watch src/index.ts --dev",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "tsx src/tests/Gallery.test.ts && tsx src/tests/GalleryPanel.test.ts && tsx src/tests/Server.test.ts && tsx src/tests/ConfigService.test.ts && tsx src/tests/DiscordService.test.ts && tsx src/tests/DevLogs.test.ts && tsx src/tests/Welcome.test.ts && tsx src/tests/DatabaseConnection.test.ts && tsx src/tests/SchemaSync.test.ts && tsx src/tests/Auth.test.ts && tsx src/tests/Config.test.ts && tsx src/tests/Notifier.test.ts && tsx src/tests/Logging.test.ts && tsx src/tests/Ticket.test.ts && tsx src/tests/OAuth.test.ts && tsx src/tests/Permissions.test.ts && tsx src/tests/Commands.test.ts",
+    "test": "tsx src/tests/Gallery.test.ts && tsx src/tests/GalleryPanel.test.ts && tsx src/tests/Server.test.ts && tsx src/tests/ConfigService.test.ts && tsx src/tests/DiscordService.test.ts && tsx src/tests/DevLogs.test.ts && tsx src/tests/Welcome.test.ts && tsx src/tests/DatabaseConnection.test.ts && tsx src/tests/SchemaSync.test.ts && tsx src/tests/Auth.test.ts && tsx src/tests/Config.test.ts && tsx src/tests/Notifier.test.ts && tsx src/tests/Logging.test.ts && tsx src/tests/Ticket.test.ts && tsx src/tests/OAuth.test.ts && tsx src/tests/Permissions.test.ts && tsx src/tests/Commands.test.ts && tsx src/tests/Help.test.ts",
     "start": "node .",
     "token": "tsx src/scripts/GenerateToken.ts",
     "fonts": "tsx src/scripts/DownloadFonts.ts"

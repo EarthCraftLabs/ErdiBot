@@ -192,10 +192,9 @@ export default class TicketHandler extends Event {
                         id: "reason",
                         label: "Grund",
                         value: "",
-                        description: context.isSupporter ? "Optional" : "Bitte kurz begründen",
+                        description: "Bitte kurz begründen — steht später auf der Abschlusskarte",
                         max: MAX_REASON_LENGTH,
                         paragraph: true,
-                        required: !context.isSupporter,
                     },
                 ]),
             meeting: () =>
@@ -432,7 +431,7 @@ export default class TicketHandler extends Event {
                     : "_Noch keine Notizen._"
             );
 
-        builder.subtext("Notizen sind intern und stehen nur im Transcript-Kanal, nie in der Nachricht an den Ersteller.");
+        builder.subtext("Notizen sind intern und stehen nur im Ticket-Log, nie in der Nachricht an den Ersteller.");
 
         builder.buttons(
             {
@@ -478,7 +477,7 @@ export default class TicketHandler extends Event {
     private async Close(
         interaction: MessageComponentInteraction | ModalSubmitInteraction,
         context: IContext,
-        reason: string | null
+        reason: string
     ): Promise<void> {
         const { ticket, config, channel } = context;
         const service = this.client.ticketService;
@@ -493,52 +492,45 @@ export default class TicketHandler extends Event {
 
         await service.Patch(ticket, { status: TicketStatus.CLOSED, closedAt: new Date() });
 
+        // Die Karte zeigt Namen, keine Erwähnungen - ein Bild löst <@id> nicht auf.
+        const creator = await this.client.users.fetch(ticket.creatorId).catch(() => null);
+        const handler = ticket.claimedById
+            ? await this.client.users.fetch(ticket.claimedById).catch(() => null)
+            : null;
+
         const payload = {
             guild: interaction.guild!,
             ticket,
             closedBy: interaction.user,
+            creator,
+            handler,
             transcript,
             channelName: channel.name,
             reason,
         };
 
-        // Der Ersteller sieht vom Abschluss sonst nichts - im Kategorie-Modus ist der
-        // Kanal gleich weg, im Forum ist der Beitrag archiviert.
-        const creator = await this.client.users.fetch(ticket.creatorId).catch(() => null);
+        // Der Ersteller sieht vom Abschluss sonst nichts - Kanal wie Beitrag sind
+        // kurz darauf gelöscht.
+        await creator?.send(await BuildTranscriptDM(payload)).catch(() => null);
 
-        await creator?.send(BuildTranscriptDM(payload)).catch(() => null);
+        // Die Abschlussnachricht ist der Log-Eintrag: sie steht im Ticket-Log aus dem
+        // Logging-Setup. Eine zweite, kurze Meldung daneben sagt nichts Neues.
+        const log = await this.client.loggingService.Target(ticket.guildId, LogType.TICKET);
+        const target = log ? await this.client.loggingService.Writable(log.channelId) : null;
 
-        if (config.transcriptChannelId) {
-            const target = await this.client.channels.fetch(config.transcriptChannelId).catch(() => null);
-
-            if (target?.isTextBased() && !target.isDMBased()) {
-                await (target as TextChannel).send(BuildTranscriptLog(payload)).catch((error) =>
-                    logger.warn(`[Ticket] Transcript-Nachricht fehlgeschlagen: ${error}`)
-                );
-            }
+        if (target) {
+            await target.send(await BuildTranscriptLog(payload)).catch((error) =>
+                logger.warn(`[Ticket] Transcript-Nachricht fehlgeschlagen: ${error}`)
+            );
         }
-
-        await this.client.loggingService.Send(ticket.guildId, {
-            type: LogType.TICKET,
-            title: "Ticket geschlossen",
-            description: [
-                Line("🎫", "Ticket", `#${Number4(ticket.ticketNumber)} — \`${channel.name}\``),
-                Line("👤", "Ersteller", Mention(ticket.creatorId)),
-                Line("🔒", "Geschlossen von", Mention(interaction.user.id, interaction.user.tag)),
-                Line("📋", "Grund", reason ?? "kein Grund angegeben"),
-                Line("💬", "Nachrichten", String(transcript.messageCount)),
-                Line("🌐", "Transcript", `[öffnen](${transcript.url})`),
-            ].join("\n"),
-        });
 
         await channel
             .send({
                 content:
                     `🔒 Dieses Ticket wurde von ${interaction.user} geschlossen.\n` +
-                    (reason ? `📋 **Grund:** ${reason}\n` : "") +
-                    (ticket.mode === TicketMode.CATEGORY
-                        ? `-# Der Kanal verschwindet in ${CLOSE_DELAY / 1000} Sekunden. Das Transcript liegt bereits im Archiv.`
-                        : "-# Der Beitrag wird gleich archiviert. Das Transcript liegt im Archiv."),
+                    `📋 **Grund:** ${reason}\n` +
+                    `-# ${ticket.mode === TicketMode.CATEGORY ? "Der Kanal" : "Der Beitrag"} verschwindet in ` +
+                    `${CLOSE_DELAY / 1000} Sekunden. Das Transcript liegt bereits im Archiv.`,
                 allowedMentions: { parse: [] },
             })
             .catch(() => null);
@@ -668,7 +660,15 @@ export default class TicketHandler extends Event {
         const read = (id: string) => interaction.fields.getTextInputValue(id).trim();
         const { ticket, channel } = context;
 
-        if (kind === CLOSE_ACTION) return this.Close(interaction, context, read("reason") || null);
+        if (kind === CLOSE_ACTION) {
+            const reason = read("reason").trim().slice(0, MAX_REASON_LENGTH);
+
+            if (!reason) {
+                return this.Tell(interaction, "❌ Ohne Grund wird nicht geschlossen — bitte kurz begründen.");
+            }
+
+            return this.Close(interaction, context, reason);
+        }
 
         if (kind === "slowmode") {
             const seconds = Clamp(Number(read("seconds")), MIN_SLOWMODE, MAX_SLOWMODE);

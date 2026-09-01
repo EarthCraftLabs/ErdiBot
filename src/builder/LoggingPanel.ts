@@ -6,6 +6,7 @@ import LogType from "../enums/LogType";
 import IDiscordLogChannel from "../interfaces/database/models/IDiscordLogChannel";
 import { ILoggingPanelView, ILoggingState } from "../interfaces/services/logging/ILoggingPanel";
 import { CATEGORIES, CHANNEL_TYPES, Category } from "../constants/Logging";
+import { HOME_BUTTON } from "./SetupPanel";
 
 export const PANEL_PREFIX = "logging:panel";
 
@@ -66,6 +67,8 @@ function Home(builder: ComponentV2Builder, state: ILoggingState): void {
         { customId: `${PANEL_PREFIX}:status`, label: "Status", emoji: "📊", tone: "primary" },
         { customId: `${PANEL_PREFIX}:refresh`, label: "Neu laden", emoji: "🔄" }
     );
+
+    builder.buttons(HOME_BUTTON);
 }
 
 // Die Vorstufe zum Kanal-Picker. Text-Kanäle und Threads landen sonst in einer langen,

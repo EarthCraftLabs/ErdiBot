@@ -191,7 +191,7 @@ export default class Guardian implements IGuardian {
     GenErrorID(): string {
         const timestamp = Math.floor(Date.now() / 1000);
         const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-        return `Ascension-${timestamp}-${randomPart}`;
+        return `EarthCraft-${timestamp}-${randomPart}`;
     }
 
     async ReportError(error: Error, interaction: Interaction | null, type = "Unknown Error"): Promise<void> {

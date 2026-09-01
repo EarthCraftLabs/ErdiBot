@@ -39,7 +39,7 @@ export default class LoggingHandler extends Event {
         const state = PanelStates.get(interaction.message.id);
 
         if (!state) {
-            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/logging` erneut."));
+            await interaction.update(this.Notice("⌛ | Panel abgelaufen", "Öffne das Setup mit `/setup` erneut."));
 
             return;
         }

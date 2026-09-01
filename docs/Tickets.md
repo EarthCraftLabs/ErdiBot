@@ -1,6 +1,6 @@
 # Ticket-System
 
-Support-Tickets in Discord: ein Panel zum Öffnen, ein Kanal oder Forum-Beitrag pro Anliegen, fünfzehn Team-Aktionen darin und ein Transcript beim Schliessen. Eingerichtet wird alles über `/tickets`.
+Support-Tickets in Discord: ein Panel zum Öffnen, ein Kanal oder Forum-Beitrag pro Anliegen, fünfzehn Team-Aktionen darin und ein Transcript beim Schliessen. Eingerichtet wird alles über `/setup` → **🎫 Tickets**.
 
 Zugriff über den Client: `this.client.ticketService`.
 
@@ -9,21 +9,27 @@ Zugriff über den Client: `this.client.ticketService`.
 ## Einrichten
 
 ```
-/tickets
+/setup
 ```
+
+Im Menü **🎫 Tickets** wählen. Mit **⬅️ Setup** geht es von jeder Ansicht wieder zur Auswahl zurück.
 
 Die Übersicht zeigt, was noch fehlt. Nötig sind vier Dinge:
 
-1. **Kanäle** — Forum oder Kategorie, Panel-Kanal, Transcript-Kanal
+1. **Kanäle** — Forum oder Kategorie, Panel-Kanal
 2. **Rollen** — wer Tickets bearbeiten darf
 3. **Kategorien** — wofür Tickets geöffnet werden können
 4. **Panel senden** — die öffentliche Nachricht
 
 Erst wenn alles steht, lässt sich das System aktivieren. Solange etwas fehlt, sagt das Panel es direkt.
 
+### Wohin die Transcripts gehen
+
+Nicht hierher: der Zielkanal ist der **Ticket-Log** aus `/setup` → **🗒️ Logging**. Er wurde dort schon einmal abgefragt, ein zweites Feld daneben wäre nur eine zweite Stelle zum Vergessen. Ist kein Ticket-Log gesetzt, bekommt nur der Ersteller sein Transcript per Direktnachricht — das Ticket-Setup weist darauf hin.
+
 ### Kanal-Auswahl
 
-Beim Panel- und Transcript-Kanal kommt erst die Frage **Text-Kanal oder Thread?**, danach eine gefilterte Liste. Gemischt wären beide Arten eine lange Liste, in der man nicht sieht, was was ist. Forum, Kategorie und Warteraum haben diese Wahl nicht — dort gibt es nur einen möglichen Typ.
+Beim Panel-Kanal kommt erst die Frage **Text-Kanal oder Thread?**, danach eine gefilterte Liste. Gemischt wären beide Arten eine lange Liste, in der man nicht sieht, was was ist. Forum, Kategorie und Warteraum haben diese Wahl nicht — dort gibt es nur einen möglichen Typ.
 
 ---
 
@@ -33,11 +39,11 @@ Beim Panel- und Transcript-Kanal kommt erst die Frage **Text-Kanal oder Thread?*
 |---|---|---|
 | Ticket ist | ein Forum-Beitrag | ein eigener Textkanal |
 | Priorität | setzt einen Forum-Tag | steht nur in der Nachricht |
-| Beim Schliessen | archiviert und gesperrt | gelöscht |
+| Beim Schliessen | gelöscht | gelöscht |
 | Rechte pro Ticket | erbt die des Forums | eigene Overwrites |
 | Claim sperrt das Team aus | nein | ja |
 
-**Forum** ist die modernere Variante: der Verlauf bleibt durchsuchbar, Tags sortieren nach Dringlichkeit, nichts geht verloren. **Kategorie** funktioniert auf Servern ohne Forum-Kanal und erlaubt echte Rechte pro Ticket — dafür ist der Kanal nach dem Schliessen weg.
+**Forum** ist die modernere Variante: Tags sortieren nach Dringlichkeit, ein Beitrag belegt keinen Platz in der Kanalliste. **Kategorie** funktioniert auf Servern ohne Forum-Kanal und erlaubt echte Rechte pro Ticket. Geschlossen wird in beiden Fällen gelöscht — der Verlauf steht im Transcript, ein zweiter Ort für dieselben Daten bringt nichts.
 
 Der Modus lässt sich jederzeit umstellen. Bereits offene Tickets behalten ihren eigenen Modus, gespeichert am Ticket selbst.
 
@@ -71,14 +77,24 @@ Erreichbar über das Menü an der Hauptnachricht im Ticket. Sichtbar ist es für
 Drei Dinge passieren, in dieser Reihenfolge:
 
 1. **Transcript** — der komplette Verlauf wird als HTML gesichert, mit eingebetteten Bildern
-2. **Nachricht an den Ersteller** per Direktnachricht, mit Datei und Link
-3. **Eintrag im Transcript-Kanal**, zusätzlich mit den internen Team-Notizen
+2. **Nachricht an den Ersteller** per Direktnachricht, mit Karte und Link
+3. **Eintrag im Ticket-Log** (aus dem Logging-Setup) — Karte und Link, dazu die internen Team-Notizen
 
-Danach wird der Beitrag archiviert beziehungsweise der Kanal nach acht Sekunden gelöscht — lange genug, dass alle Beteiligten die Abschlussnachricht noch lesen.
+Danach wird der Kanal beziehungsweise der Forum-Beitrag nach acht Sekunden gelöscht — lange genug, dass alle Beteiligten die Abschlussnachricht noch lesen.
 
 **Scheitert das Transcript, bleibt das Ticket offen.** Ein Ticket zu schliessen, dessen Verlauf verloren ist, wäre der schlechtere Ausgang.
 
-### Was in der Nachricht steht
+### Die Abschlusskarte
+
+Die Nachricht ist ein **gezeichnetes Bild**, kein Text: `src/builder/TranscriptCard.ts` rendert sie mit `@napi-rs/canvas` — zwei Spalten, farbige Icon-Flächen, Badges für Kategorie und Priorität. Die Akzentfarbe ist die der Priorität, bei *Kritisch* also rot.
+
+Zwei Dinge folgen daraus:
+
+- **Ein Bild löst keine Erwähnung auf.** Statt `<@id>` steht der Anzeigename da, den der Handler vorher über `users.fetch` holt — daneben die Discord-ID, weil Anzeigenamen sich ändern und IDs nicht. Wird es eng, weicht der Name, nie die ID.
+- **Der Link ist ein echter Knopf** unter dem Bild, kein gemalter. Auf der Karte steht stattdessen die Transcript-ID.
+- **Die HTML-Datei hängt nirgends an**, weder im Kanal noch in der Direktnachricht — Discord würde sie als Code-Vorschau ausrollen. Der Knopf führt zum Transcript auf dem Webserver.
+
+Die Schriften kommen aus `src/assets/fonts` (Inter, JetBrains Mono für die Transcript-ID), die Icons aus **Noto Color Emoji** des Systems. Fehlt die Emoji-Schrift auf dem Host, bleiben die Icon-Flächen leer — der Rest der Karte steht trotzdem.
 
 | Feld | |
 |---|---|
@@ -86,12 +102,15 @@ Danach wird der Beitrag archiviert beziehungsweise der Kanal nach acht Sekunden 
 | Ersteller, Bearbeiter, Geschlossen von | wer beteiligt war |
 | Geöffnet, Geschlossen, **Laufzeit** | wie lange es offen war |
 | **Nachrichten**, **Beteiligte** | wie viel Betrieb war |
+| Grund, Transcript-ID | nebeneinander unter den Spalten |
+
+Der **Grund ist Pflicht** — für das Team wie für den Ersteller. Discord erzwingt nur ein nicht-leeres Feld, deshalb weist der Handler auch reine Leerzeichen ab; das Ticket bleibt dann offen. Lange Gründe brechen auf bis zu drei Zeilen um, der Rest endet mit Auslassungspunkten.
 | **Reaktionszeit** | wie lange bis zur Übernahme |
 | Merkmale | eingefroren, anonym, Notizen, Termin |
 
 Reaktionszeit und Laufzeit sind die Zahlen, nach denen ein Support-Team am ehesten gefragt wird — deshalb stehen sie direkt in der Nachricht statt nur im Transcript.
 
-**Interne Team-Notizen stehen ausschliesslich im Transcript-Kanal**, nie in der Nachricht an den Ersteller. Der Test nagelt genau das fest.
+**Interne Team-Notizen stehen ausschliesslich im Ticket-Log**, nie in der Nachricht an den Ersteller. Der Test nagelt genau das fest.
 
 ---
 
@@ -130,7 +149,26 @@ Im Forum-Modus setzt die Priorität zusätzlich einen Tag. Der Bot sucht dafür 
 
 Jede Kategorie hat entweder eine eigene Rolle oder steht auf **alle Support-Rollen**. Das entscheidet, wer gepingt wird, wer die Direktnachricht bekommt und — im Kategorie-Modus — wer den Kanal überhaupt sieht.
 
+Zur Wahl stehen nur Rollen, die vorher unter **🛠️ Rollen** als Support-Rolle eingetragen wurden. Eine fremde Rolle zuständig zu machen, die im Ticket nichts sehen darf, wäre ein Ping ins Leere. Wird eine Rolle später aus dem Support-Team entfernt, bleibt sie zuständig — die Kategorie weist darauf hin.
+
 Die Team-Aktionen darf jeder benutzen, der eine der eingetragenen Support-Rollen hat oder Administrator ist, unabhängig von der Kategorie.
+
+### Emoji einer Kategorie
+
+Zwei Wege: **Text ändern** nimmt jedes Standard-Emoji als Text entgegen, das Menü darunter listet die **Emojis dieses Servers**. Discord hat für Komponenten keinen Emoji-Picker, deshalb ein Select — mehr als 25 passen nicht hinein, ab da wird geblättert.
+
+---
+
+## Panel-Bilder
+
+Das öffentliche Panel trägt zwei Bilder, beide optional:
+
+| | Wo | Wirkung |
+|---|---|---|
+| **Bild** | unter dem Text | volle Breite, als Galerie |
+| **Thumbnail** | neben dem Text | klein, rechts — der Text wird dafür zur Section |
+
+Beide kommen entweder als Adresse über **Bilder & Farbe** oder aus der Galerie über **Bild aus Galerie** / **Thumbnail aus Galerie** — derselbe Bestand, den auch `/gallery` und das Welcome-Panel benutzen. Ein leeres Feld im Modal entfernt das Bild.
 
 ---
 
@@ -183,11 +221,12 @@ Kategorien, Support-Rollen, Notizen und der Termin liegen als JSON in ihrer Zeil
 | `src/services/TicketService.ts` | Anlegen, Rechte, Transcript, Schliessen |
 | `src/builder/TicketSetupPanel.ts` | Das Setup |
 | `src/builder/TicketMessage.ts` | Hauptnachricht im Ticket und das öffentliche Panel |
-| `src/builder/TranscriptMessage.ts` | Abschlussnachricht für Archiv und Ersteller |
+| `src/builder/TranscriptMessage.ts` | Abschlussnachricht für Ticket-Log und Ersteller |
+| `src/builder/TranscriptCard.ts` | Zeichnet die Abschlusskarte als PNG |
 | `src/events/ticket/TicketHandler.ts` | Panel-Auswahl und die fünfzehn Aktionen |
 | `src/events/ticket/TicketSetupHandler.ts` | Das Setup bedienen |
 | `src/events/ticket/TicketAnonymous.ts` | Nachrichten im anonymen Modus umschreiben |
-| `src/commands/admin/Tickets.ts` | `/tickets` |
+| `src/commands/admin/Setup.ts` | `/setup` |
 | `src/routes/Transcripts.ts` | Transcript im Browser |
 | `src/runnables/TicketMaintenance.ts` | Erinnerungen und Aufräumen |
 | `src/constants/Ticket.ts` | Standards, Normalisierung, Prioritäten |

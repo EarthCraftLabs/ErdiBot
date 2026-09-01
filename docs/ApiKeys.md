@@ -94,7 +94,7 @@ Sollte TikTok je eine echte Lese-API anbieten: Die Plattform-Liste ist eine Kons
 
 ## Prüfen, ob es geklappt hat
 
-Nach dem Eintragen den Bot neu starten und `/notifier` aufrufen → **Status**. Dort steht pro Plattform, ob sie bereit ist:
+Nach dem Eintragen den Bot neu starten und `/setup` → **🔔 Notifier** → **Status** aufrufen. Dort steht pro Plattform, ob sie bereit ist:
 
 ```
 📺 YouTube — ✅ bereit

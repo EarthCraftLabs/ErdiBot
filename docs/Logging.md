@@ -1,6 +1,6 @@
 # Logging
 
-Schreibt mit, was auf dem Server passiert — in Discord-Kanäle, nicht in eine Datei. Eingerichtet wird alles über `/logging`.
+Schreibt mit, was auf dem Server passiert — in Discord-Kanäle, nicht in eine Datei. Eingerichtet wird alles über `/setup` → **🗒️ Logging**.
 
 Zugriff über den Client: `this.client.loggingService`.
 
@@ -11,8 +11,10 @@ Nicht zu verwechseln mit den **DevLogs** ([DevLogs.md](DevLogs.md)) — die zeig
 ## Einrichten
 
 ```
-/logging
+/setup
 ```
+
+Im Menü **🗒️ Logging** wählen. Mit **⬅️ Setup** geht es von jeder Ansicht wieder zur Auswahl zurück.
 
 1. Kategorie aus der Liste wählen
 2. **Text-Kanal oder Thread?**
@@ -43,7 +45,7 @@ Ein Kanal-Auswahlmenü, das Text-Kanäle und Threads gleichzeitig anbietet, wird
 | 👤 | Profil-Logs | Nickname, Benutzername, Avatar, zugewiesene Rollen |
 | 🛡️ | Moderations-Logs | Bann, Entbannung, Kick, Timeout — mit Ausführendem und Grund |
 | 📋 | Audit-Logs | Server-Einstellungen, Emojis, Einladungen, Webhooks |
-| 🎫 | Ticket-Logs | Geöffnet, geschlossen, Nutzer gesperrt — siehe [Tickets.md](Tickets.md) |
+| 🎫 | Ticket-Logs | Geöffnet, Nutzer gesperrt und die **Abschlussnachricht mit Transcript** — siehe [Tickets.md](Tickets.md) |
 | ⚠️ | Fehler-Logs | Der Guardian meldet hier abgefangene Fehler |
 
 ---
@@ -150,7 +152,7 @@ Der String `errorLog` ist in `Guardian.GetServiceIDs` fest verdrahtet und wird v
 | `src/builder/LogMessage.ts` | Der Container eines Eintrags |
 | `src/events/logging/LoggingHandler.ts` | Buttons und Selects des Panels |
 | `src/events/logs/*.ts` | 23 Event-Handler, einer pro Discord-Ereignis |
-| `src/commands/admin/Logging.ts` | `/logging` |
+| `src/commands/admin/Setup.ts` | `/setup` |
 | `src/runnables/LogThreadHeartbeat.ts` | Weckt Log-Threads täglich um 04:00 |
 | `src/constants/Logging.ts` | Kategorien und Formatierungs-Bausteine |
 | `src/enums/LogType.ts` | Die zehn Typen |

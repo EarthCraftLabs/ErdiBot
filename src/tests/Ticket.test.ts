@@ -6,7 +6,7 @@ import TicketMode from "../enums/TicketMode";
 import TicketPriority from "../enums/TicketPriority";
 import TicketStatus from "../enums/TicketStatus";
 import BuildTicketMessage, { BuildTicketPanel } from "../builder/TicketMessage";
-import { BuildTranscriptDM, BuildTranscriptLog, Duration } from "../builder/TranscriptMessage";
+import { BuildTranscriptDM, BuildTranscriptLog, CardLayout, Duration } from "../builder/TranscriptMessage";
 import { ActiveCategory, NewSetupState, RenderSetup, SetupStates } from "../builder/TicketSetupPanel";
 import { ISetupState } from "../interfaces/services/ticket/ITicketPanel";
 import { ITicket } from "../interfaces/services/ticket/ITicket";
@@ -161,7 +161,6 @@ function Ready(overrides: Partial<ITicketConfig> = {}): ITicketConfig {
         ...DefaultConfig(GUILD),
         forumChannelId: "100",
         panelChannelId: "200",
-        transcriptChannelId: "300",
         supportRoleIds: ["900"],
         categories: [
             { ...DefaultCategory("Allgemein"), priority: TicketPriority.LOW },
@@ -258,6 +257,15 @@ assert.ok(panelJson.includes("ticket:open"), "das Panel bietet die Kategorien an
 assert.ok(panelJson.includes("Allgemein") && panelJson.includes("Notfall"));
 assert.ok(panelJson.includes("höchstens"), "das Limit steht im Panel");
 
+// Bild und Thumbnail: das eine als Galerie unten, das andere als Section daneben.
+const withImages = JSON.stringify(
+    BuildTicketPanel({ ...config, panelImage: "https://cdn.test/bild.png", panelThumbnail: "https://cdn.test/thumb.png" })
+);
+
+assert.ok(withImages.includes("bild.png") && withImages.includes("thumb.png"));
+assert.ok(withImages.includes('"type":9'), "mit Thumbnail wird der Text zur Section");
+assert.ok(!JSON.stringify(BuildTicketPanel(config)).includes('"type":9'), "ohne Thumbnail bleibt es reiner Text");
+
 // Ein Panel ohne Kategorien darf kein leeres Menü bauen - der Builder würde werfen.
 assert.doesNotThrow(() => BuildTicketPanel({ ...config, categories: [] }));
 assert.ok(!JSON.stringify(BuildTicketPanel({ ...config, categories: [] })).includes("ticket:open"));
@@ -267,7 +275,6 @@ assert.ok(!JSON.stringify(BuildTicketPanel({ ...config, categories: [] })).inclu
 const transcript: ITranscriptResult = {
     transcriptId: "AAAA-BBBB-CCCC-DDDD",
     url: "https://example.com/transcripts/AAAA-BBBB-CCCC-DDDD",
-    buffer: Buffer.from("<html></html>"),
     messageCount: 37,
     participants: ["111", "222"],
 };
@@ -283,22 +290,25 @@ const closed = Ticket({
 const payload = {
     guild: { name: "EarthCraft", id: GUILD } as never,
     ticket: closed,
-    closedBy: { id: "222" } as never,
+    closedBy: { id: "222", displayName: "Mecry" } as never,
+    creator: { id: "111", displayName: "MecryTv | Joe" } as never,
+    handler: { id: "222", displayName: "Mecry" } as never,
     transcript,
     channelName: "ticket-0042",
-    reason: null,
+    reason: "Anliegen erledigt",
 };
 
-const log = BuildTranscriptLog(payload);
-const logJson = JSON.stringify(log.components?.[0]);
+// Die Zahlen stehen jetzt im gezeichneten Bild - geprüft wird deshalb, was hineingeht.
+const layout = JSON.stringify(CardLayout(payload, false));
 
-assert.equal(log.files?.length, 1, "die HTML-Datei hängt an");
-assert.ok(logJson.includes("37"), "die Anzahl Nachrichten steht drin");
-assert.ok(logJson.includes("2 Person"), "die Beteiligten werden gezählt");
-assert.ok(logJson.includes("2 Std."), "die Laufzeit steht drin");
-assert.ok(logJson.includes("nach 12 Min. übernommen"), "die Reaktionszeit steht drin");
-assert.ok(logJson.includes("Rückerstattung"), "Team-Notizen stehen im Transcript-Kanal");
-assert.ok(logJson.includes(transcript.url));
+assert.ok(layout.includes('"value":"37"'), "die Anzahl Nachrichten steht drin");
+assert.ok(layout.includes("2 Person"), "die Beteiligten werden gezählt");
+assert.ok(layout.includes("2 Std."), "die Laufzeit steht drin");
+assert.ok(layout.includes("nach 12 Min. übernommen"), "die Reaktionszeit steht drin");
+assert.ok(layout.includes("@MecryTv | Joe"), "der Ersteller steht mit Namen da, nicht als Erwähnung");
+assert.ok(!layout.includes("<@111>"), "eine Erwähnung würde ein Bild nicht auflösen");
+assert.ok(layout.includes('"id":"111"'), "die ID steht neben dem Namen — Namen ändern sich, IDs nicht");
+assert.ok(layout.includes('"id":"222"'));
 
 // Der Ersteller darf sein eigenes Ticket schliessen - und nur das.
 assert.equal(MayUseAction("close", false, true), true, "der Ersteller schliesst sein Ticket selbst");
@@ -309,24 +319,12 @@ assert.equal(MayUseAction("close", true, false), true, "das Team darf immer");
 assert.equal(MayUseAction("freeze", true, false), true, "das Team darf jede Aktion");
 assert.equal(MayUseAction(undefined, false, true), false, "ohne Aktion gibt es kein Schlupfloch");
 
-const withReason = BuildTranscriptLog({ ...payload, reason: "Anliegen erledigt" });
+assert.equal(CardLayout(payload, false).reason, "Anliegen erledigt", "der Schliessgrund gehört auf die Karte");
 
-assert.ok(
-    JSON.stringify(withReason.components?.[0]).includes("Anliegen erledigt"),
-    "der Schliessgrund gehört ins Transcript"
-);
+const idle = JSON.stringify(CardLayout({ ...payload, ticket: Ticket({ claimedById: null, closedAt: new Date() }) }, false));
 
-const dm = BuildTranscriptDM(payload);
-const dmJson = JSON.stringify(dm.components?.[0]);
-
-// Der wichtigste Unterschied: interne Notizen dürfen den Ersteller nie erreichen.
-assert.ok(!dmJson.includes("Rückerstattung"), "interne Notizen gehen NICHT an den Ersteller");
-assert.ok(dmJson.includes("37"), "die Zahlen bekommt er trotzdem");
-assert.equal(dm.files?.length, 1);
-
-const never = BuildTranscriptLog({ ...payload, ticket: Ticket({ claimedById: null, closedAt: new Date() }) });
-
-assert.ok(JSON.stringify(never.components?.[0]).includes("nie beansprucht"));
+assert.ok(idle.includes("nie beansprucht"));
+assert.ok(idle.includes('"value":"niemand"'), "ohne Bearbeiter steht dort niemand");
 
 // ── Setup-Panel ────────────────────────────────────────────────────────────
 
@@ -344,13 +342,30 @@ async function main2(): Promise<void> {
         assert.ok(values.includes(required), `die Aktion "${required}" fehlt`);
     }
 
-    const client = { configService } as unknown as BotClient;
-    const state = NewSetupState(GUILD, Ready());
+    const guild = {
+        roles: { cache: new Map([["900", { name: "Support" }]]) },
+        emojis: {
+            cache: new Map(
+                Array.from({ length: 30 }, (_, index) => [
+                    `emoji${index}`,
+                    { id: `emoji${index}`, name: `erdi${index}`, animated: false },
+                ])
+            ),
+        },
+    };
+
+    const client = {
+        configService,
+        guilds: { cache: new Map([[GUILD, guild]]) },
+        galleryService: { SearchImages: async () => [] },
+    } as unknown as BotClient;
+
+    const state = NewSetupState(GUILD, Ready(), "300");
 
     let rendered = 0;
 
-    function Render(overrides: Partial<ISetupState>): string {
-        const view = RenderSetup(client, { ...state, ...overrides });
+    async function Render(overrides: Partial<ISetupState>): Promise<string> {
+        const view = await RenderSetup(client, { ...state, ...overrides });
 
         assert.equal(view.components.length, 1);
         rendered++;
@@ -358,18 +373,37 @@ async function main2(): Promise<void> {
         return JSON.stringify(view.components[0]);
     }
 
-    assert.ok(Render({ view: "home" }).includes("Aktiv"));
-    assert.ok(Render({ view: "channels" }).includes("Forum-Beiträge"));
-    assert.ok(Render({ view: "roles" }).includes("<@&900>"));
-    assert.ok(Render({ view: "categories" }).includes("Notfall"));
-    assert.ok(Render({ view: "category", categoryIndex: 1 }).includes("Kritisch"));
-    assert.ok(Render({ view: "category", categoryIndex: 1 }).includes("Direktnachricht"), "der Alarm-Hinweis steht dabei");
-    assert.ok(Render({ view: "panel" }).includes("Titel"));
-    assert.ok(Render({ view: "limits" }).includes("Support-Zeiten"));
-    assert.ok(Render({ view: "blacklist" }).includes("Sperre"));
+    assert.ok((await Render({ view: "home" })).includes("Aktiv"));
+    assert.ok((await Render({ view: "channels" })).includes("Forum-Beiträge"));
+    assert.ok((await Render({ view: "roles" })).includes("<@&900>"), "die Rolle steht als Erwähnung da");
+    assert.ok((await Render({ view: "roles" })).includes("Support"), "und im Entfernen-Menü mit ihrem Namen");
+    assert.ok((await Render({ view: "categories" })).includes("Notfall"));
+    assert.ok((await Render({ view: "category", categoryIndex: 1 })).includes("Kritisch"));
+    assert.ok(
+        (await Render({ view: "category", categoryIndex: 1 })).includes("Direktnachricht"),
+        "der Alarm-Hinweis steht dabei"
+    );
+    assert.ok((await Render({ view: "panel" })).includes("Titel"));
+    assert.ok((await Render({ view: "limits" })).includes("Support-Zeiten"));
+    assert.ok((await Render({ view: "blacklist" })).includes("Sperre"));
+
+    // Kategorie-Ansicht: Emojis vom Server, Zuständigkeit nur aus dem Support-Team.
+    const category = await Render({ view: "category", categoryIndex: 0 });
+
+    assert.ok(category.includes('"ticket:setup:emoji"'), "die Server-Emojis stehen zur Auswahl");
+    assert.ok(category.includes("(1/2)"), "30 Emojis passen nicht auf eine Seite");
+    assert.ok(category.includes("Alle Support-Rollen"));
+    assert.ok(category.includes("Support"), "die Support-Rolle steht mit Namen im Menü");
+    assert.ok(!category.includes('"ROLE_SELECT"') && !category.includes('"type":6'), "keine freie Rollenwahl mehr");
+
+    assert.ok((await Render({ view: "category", categoryIndex: 0, emojiPage: 1 })).includes("(2/2)"));
+    assert.ok((await Render({ view: "category", categoryIndex: 0, emojiPage: 9 })).includes("(2/2)"), "Seite wird begrenzt");
+
+    // Eine Kategorie-Rolle, die nicht mehr im Support-Team steht, wird angemerkt.
+    assert.ok((await Render({ view: "category", categoryIndex: 1 })).includes("nicht mehr im Support-Team"));
 
     // Die Kanal-Vorstufe: erst Text oder Thread, dann die gefilterte Liste.
-    const before = Render({ view: "channels", picking: "panel", kind: null });
+    const before = await Render({ view: "channels", picking: "panel", kind: null });
 
     // Genau die customId, nicht als Teilstring: "ticket:setup:channels" ist der Zurück-Knopf.
     const PICKER = '"ticket:setup:channel"';
@@ -377,15 +411,15 @@ async function main2(): Promise<void> {
     assert.ok(before.includes("Kanal-Art"), "ohne Wahl kommt erst die Kanal-Art");
     assert.ok(!before.includes(PICKER), "der Kanal-Picker kommt erst nach der Wahl");
 
-    const text = Render({ view: "channels", picking: "panel", kind: "text" });
-    const thread = Render({ view: "channels", picking: "panel", kind: "thread" });
+    const text = await Render({ view: "channels", picking: "panel", kind: "text" });
+    const thread = await Render({ view: "channels", picking: "panel", kind: "thread" });
 
     assert.ok(text.includes(PICKER), "danach kommt der Kanal-Picker");
     assert.ok(!text.includes('"channel_types":[11') && !text.includes("11,12"), "der Text-Picker zeigt keine Threads");
     assert.ok(thread.includes("11"), "der Thread-Picker filtert auf Threads");
 
     // Forum und Warteraum haben keine Text/Thread-Wahl.
-    const container = Render({ view: "channels", picking: "container", kind: null });
+    const container = await Render({ view: "channels", picking: "container", kind: null });
 
     assert.ok(!container.includes("Kanal-Art"), "beim Forum gibt es nichts zu wählen");
     assert.ok(container.includes(PICKER));
@@ -393,24 +427,58 @@ async function main2(): Promise<void> {
     // Eine unvollständige Einrichtung darf keine Ansicht sprengen.
     const fresh = NewSetupState(GUILD, DefaultConfig(GUILD));
 
-    for (const view of ["home", "channels", "roles", "categories", "category", "panel", "limits", "blacklist"] as const) {
-        assert.equal(RenderSetup(client, { ...fresh, view }).components.length, 1, `${view} leer`);
+    for (const view of [
+        "home",
+        "channels",
+        "roles",
+        "categories",
+        "category",
+        "panel",
+        "gallery",
+        "limits",
+        "blacklist",
+    ] as const) {
+        assert.equal((await RenderSetup(client, { ...fresh, view })).components.length, 1, `${view} leer`);
         rendered++;
     }
 
-    assert.ok(RenderSetup(client, fresh).components.length === 1);
+    assert.ok((await RenderSetup(client, fresh)).components.length === 1);
     assert.equal(ActiveCategory(fresh), null, "ohne Kategorie gibt es keine aktive");
 
     const withDraft = { ...state, view: "category" as const, draft: DefaultCategory("Entwurf"), dirty: true };
 
     assert.equal(ActiveCategory(withDraft)?.name, "Entwurf", "der Entwurf hat Vorrang");
-    assert.ok(Render(withDraft).includes("Ungespeicherte"));
+    assert.ok((await Render(withDraft)).includes("Ungespeicherte"));
 
     assert.equal(SetupStates.max, 50);
 
+    // ── Abschlussnachricht ─────────────────────────────────────────────────
+    // Die Karte wird wirklich gezeichnet: ein kaputtes Layout fällt hier auf, nicht erst
+    // im Ticket-Kanal.
+    const log = await BuildTranscriptLog(payload);
+    const dm = await BuildTranscriptDM(payload);
+
+    for (const [label, message] of [["Log", log], ["DM", dm]] as const) {
+        const png = (message.files as { attachment: Buffer }[])[0].attachment;
+
+        assert.ok(png.length > 10_000, `${label}: die Karte ist gerendert`);
+        assert.equal(png.subarray(1, 4).toString(), "PNG", `${label}: und wirklich ein PNG`);
+        assert.ok(JSON.stringify(message.components).includes(transcript.url), `${label}: der Link ist klickbar`);
+    }
+
+    // Discord würde die HTML-Datei als Code-Vorschau ausrollen - nirgends hängt sie an,
+    // der Knopf führt zum Transcript auf dem Webserver.
+    assert.equal(log.files?.length, 1, "im Kanal hängt nur die Karte");
+    assert.equal(dm.files?.length, 1, "und in der Direktnachricht auch");
+
+    // Der wichtigste Unterschied: interne Notizen dürfen den Ersteller nie erreichen.
+    assert.ok(log.content?.includes("Rückerstattung"), "Team-Notizen stehen im Ticket-Log");
+    assert.ok(!dm.content?.includes("Rückerstattung"), "interne Notizen gehen NICHT an den Ersteller");
+
     console.log(
         `OK - Normalisierung repariert kaputte Zeilen, ${PRIORITIES.length} Prioritäten, 15 Team-Aktionen, ` +
-            `Text/Thread getrennt, interne Notizen bleiben intern und ${rendered} Panel-Zustände verhalten sich korrekt`
+            `Text/Thread getrennt, interne Notizen bleiben intern, die Abschlusskarte wird gezeichnet ` +
+            `und ${rendered} Panel-Zustände verhalten sich korrekt`
     );
 }
 

@@ -84,6 +84,12 @@ export default class ConstructionHandler implements IConstructionHandler {
         const clientId = developerMode ? config.DEV_CLIENT_ID : config.CLIENT_ID;
         const rest = new REST().setToken(developerMode ? config.DEV_CLIENT_TOKEN : config.CLIENT_TOKEN);
 
+        // Teilen sich Dev und Prod eine Application, stehen die global registrierten Befehle
+        // neben den Guild-Befehlen des Dev-Modus - Discord zeigt dann jeden davon doppelt.
+        if (config.CLIENT_ID === config.DEV_CLIENT_ID) {
+            logger.warn("⚠️  CLIENT_ID und DEV_CLIENT_ID sind identisch - Befehle erscheinen im Dev-Server doppelt. Lege im Developer Portal eine eigene Dev-Application an.");
+        }
+
         const globalCommands = this.client.commands.filter((cmd) => !cmd.developerOnly);
         const devCommands = this.client.commands.filter((cmd) => cmd.developerOnly);
 
